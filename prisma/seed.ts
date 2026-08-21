@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 import crypto from 'crypto'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+const prisma = new PrismaClient({ adapter })
 
 function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex')
