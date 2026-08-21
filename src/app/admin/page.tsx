@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/db";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
+  const session = await getSession();
+  if (!session) redirect("/admin/login");
+
   const [projectCounts, skillCount, researchCount, achievementCount, journeyCount] = await Promise.all([
     prisma.project.groupBy({
       by: ["status"],
@@ -13,9 +19,9 @@ export default async function AdminDashboard() {
     prisma.journeyEntry.count(),
   ]);
 
-  const totalProjects = projectCounts.reduce<number>((acc, g) => acc + g._count, 0);
-  const published = projectCounts.find((g) => g.status === "PUBLISHED")?._count || 0;
-  const drafts = projectCounts.find((g) => g.status === "DRAFT")?._count || 0;
+  const totalProjects = projectCounts.reduce<number>((acc: number, g: any) => acc + g._count, 0);
+  const published = projectCounts.find((g: any) => g.status === "PUBLISHED")?._count || 0;
+  const drafts = projectCounts.find((g: any) => g.status === "DRAFT")?._count || 0;
   const featured = await prisma.project.count({ where: { featured: true } });
 
   const stats = [
