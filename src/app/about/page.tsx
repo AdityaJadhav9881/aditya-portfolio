@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 async function getSettings() {
   const settings = await prisma.siteSetting.findMany();
-  return Object.fromEntries(settings.map((s) => [s.key, String(s.value)]));
+  return Object.fromEntries(settings.map((s: any) => [s.key, String(s.value)]));
 }
 
 export default async function AboutPage() {

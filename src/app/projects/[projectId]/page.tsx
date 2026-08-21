@@ -40,8 +40,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   if (!project || project.status !== "PUBLISHED") notFound();
 
-  const relatedSkillNames = project.projectSkills.map((ps) => ps.skill.name);
-  const relatedProjects = project.relatedProjects.map((rp) => rp.relatedProject);
+  const relatedSkillNames = project.projectSkills.map((ps: any) => ps.skill.name);
+  const relatedProjects = project.relatedProjects.map((rp: any) => rp.relatedProject);
 
   return (
     <div className="py-24 md:py-32 px-6">
@@ -78,7 +78,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
           <FadeIn delay={0.2}>
             <div className="mt-6 flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
+              {project.technologies.map((tech: string) => (
                 <span
                   key={tech}
                   className="text-[10px] tracking-[0.08em] uppercase text-[var(--color-accent)] border border-[var(--color-accent)]/20 bg-[var(--color-accent-glow)] px-3 py-1 rounded-sm"
@@ -118,8 +118,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               </h2>
               <ul className="space-y-3">
                 {project.sections
-                  .filter((s) => s.sectionType === "FEATURES")
-                  .map((feature) => (
+                  .filter((s: any) => s.sectionType === "FEATURES")
+                  .map((feature: any) => (
                     <li
                       key={feature.id}
                       className="flex items-start gap-3 text-base text-[var(--color-text-secondary)]"
@@ -162,7 +162,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                       Related Skills
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {relatedSkillNames.map((skill) => (
+                      {relatedSkillNames.map((skill: string) => (
                         <span
                           key={skill}
                           className="text-xs text-[var(--color-text-secondary)] border border-[var(--color-border)] px-3 py-1 rounded-sm"
@@ -180,7 +180,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                       Related Projects
                     </h3>
                     <div className="space-y-3">
-                      {relatedProjects.map((rp) => (
+                      {relatedProjects.map((rp: any) => (
                         <Link
                           key={rp.slug}
                           href={`/projects/${rp.slug}`}

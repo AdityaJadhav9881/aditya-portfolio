@@ -24,17 +24,17 @@ async function getSkillData() {
     },
   });
 
-  return skillGroups.map((g) => ({
+  return skillGroups.map((g: any) => ({
     ...g,
     createdAt: g.createdAt.toISOString(),
     updatedAt: g.updatedAt.toISOString(),
-    skills: g.skills.map((s) => ({
+    skills: g.skills.map((s: any) => ({
       ...s,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString(),
       projects: s.projectSkills
-        .filter((ps) => ps.project.status === "PUBLISHED")
-        .map((ps) => ({ slug: ps.project.slug, name: ps.project.name })),
+        .filter((ps: any) => ps.project.status === "PUBLISHED")
+        .map((ps: any) => ({ slug: ps.project.slug, name: ps.project.name })),
     })),
   }));
 }

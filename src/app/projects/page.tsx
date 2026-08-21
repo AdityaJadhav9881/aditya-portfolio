@@ -45,7 +45,7 @@ export default async function ProjectsPage() {
 
         <FadeInStagger stagger={0.06}>
           <div className="space-y-0">
-            {projects.map((project, i) => (
+            {projects.map((project: any, i: number) => (
               <FadeInItem key={project.id}>
                 <Link href={`/projects/${project.slug}`}>
                   <div className="group py-8 md:py-10 border-t border-[var(--color-border)] last:border-b cursor-pointer">
@@ -83,7 +83,7 @@ export default async function ProjectsPage() {
                     </div>
 
                     <div className="ml-10 mt-4 flex flex-wrap gap-2">
-                      {project.technologies.slice(0, 4).map((tech) => (
+                      {project.technologies.slice(0, 4).map((tech: string) => (
                         <span
                           key={tech}
                           className="text-[10px] tracking-[0.08em] text-[var(--color-text-muted)] border border-[var(--color-border)] px-2 py-0.5 rounded-sm"

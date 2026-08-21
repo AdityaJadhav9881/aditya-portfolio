@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 async function getContactSettings() {
   const settings = await prisma.siteSetting.findMany();
-  const map = Object.fromEntries(settings.map((s) => [s.key, String(s.value)]));
+  const map = Object.fromEntries(settings.map((s: any) => [s.key, String(s.value)]));
   return {
     email: map.email || "",
     linkedin: map.linkedin || "",

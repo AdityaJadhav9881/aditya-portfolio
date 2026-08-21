@@ -20,12 +20,12 @@ async function getResearch() {
     },
   });
 
-  return entries.map((e) => ({
+  return entries.map((e: any) => ({
     ...e,
     links: e.links as { label: string; url: string }[] | null,
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
-    projects: e.researchProjects.map((rp) => ({
+    projects: e.researchProjects.map((rp: any) => ({
       slug: rp.project.slug,
       name: rp.project.name,
     })),

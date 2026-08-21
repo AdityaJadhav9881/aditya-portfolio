@@ -46,14 +46,14 @@ export default async function SkillGroupPage({ params }: SkillGroupPageProps) {
         </div>
 
         <div className="mt-16 max-w-4xl space-y-0">
-          {group.skills.map((skill, i) => (
+          {group.skills.map((skill: any, i: number) => (
             <FadeIn key={skill.id} delay={0.1 + i * 0.08}>
               <div className="py-8 border-t border-[var(--color-border)] last:border-b">
                 <h3 className="text-xl font-medium text-[var(--color-text-primary)]">{skill.name}</h3>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {skill.projectSkills
-                    .filter((ps) => ps.project.status === "PUBLISHED")
-                    .map((ps) => (
+                    .filter((ps: any) => ps.project.status === "PUBLISHED")
+                    .map((ps: any) => (
                       <Link
                         key={ps.project.slug}
                         href={`/projects/${ps.project.slug}`}

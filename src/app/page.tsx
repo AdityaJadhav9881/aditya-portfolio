@@ -36,7 +36,7 @@ async function getHomepageData() {
     prisma.siteSetting.findMany(),
   ])
 
-  const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]))
+  const settingsMap = Object.fromEntries(settings.map((s: any) => [s.key, s.value]))
 
   return { projects, skillGroups, journey, research, settingsMap }
 }
@@ -44,18 +44,18 @@ async function getHomepageData() {
 export default async function Home() {
   const { projects, skillGroups, journey, research, settingsMap } = await getHomepageData()
 
-  const serializableProjects = projects.map(p => ({
+  const serializableProjects = projects.map((p: any) => ({
     ...p,
     year: p.year ?? 0,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   }))
 
-  const serializableJourney = journey.map(j => ({
+  const serializableJourney = journey.map((j: any) => ({
     ...j,
     createdAt: j.createdAt.toISOString(),
     updatedAt: j.updatedAt.toISOString(),
-    journeyProjects: j.journeyProjects.map(jp => ({
+    journeyProjects: j.journeyProjects.map((jp: any) => ({
       ...jp,
       project: {
         ...jp.project,
@@ -66,11 +66,11 @@ export default async function Home() {
     })),
   }))
 
-  const serializableResearch = research.map(r => ({
+  const serializableResearch = research.map((r: any) => ({
     ...r,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
-    researchProjects: r.researchProjects.map(rp => ({
+    researchProjects: r.researchProjects.map((rp: any) => ({
       ...rp,
       project: {
         ...rp.project,
@@ -81,11 +81,11 @@ export default async function Home() {
     })),
   }))
 
-  const serializableSkills = skillGroups.map(g => ({
+  const serializableSkills = skillGroups.map((g: any) => ({
     ...g,
     createdAt: g.createdAt.toISOString(),
     updatedAt: g.updatedAt.toISOString(),
-    skills: g.skills.map(s => ({
+    skills: g.skills.map((s: any) => ({
       ...s,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString(),

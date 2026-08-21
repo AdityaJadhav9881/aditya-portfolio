@@ -14,7 +14,7 @@ async function getSocialLinks() {
   const settings = await prisma.siteSetting.findMany({
     where: { key: { in: ["github", "linkedin"] } },
   });
-  const map = Object.fromEntries(settings.map((s) => [s.key, String(s.value)]));
+  const map = Object.fromEntries(settings.map((s: any) => [s.key, String(s.value)]));
   return { github: map.github || "#", linkedin: map.linkedin || "#" };
 }
 

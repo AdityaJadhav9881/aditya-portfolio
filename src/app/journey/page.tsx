@@ -20,11 +20,11 @@ async function getJourney() {
     },
   });
 
-  return entries.map((e) => ({
+  return entries.map((e: any) => ({
     ...e,
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
-    projects: e.journeyProjects.map((jp) => ({
+    projects: e.journeyProjects.map((jp: any) => ({
       slug: jp.project.slug,
       name: jp.project.name,
     })),

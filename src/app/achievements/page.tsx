@@ -15,7 +15,7 @@ async function getAchievements() {
     orderBy: { displayOrder: "asc" },
   });
 
-  return entries.map((e) => ({
+  return entries.map((e: any) => ({
     ...e,
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
