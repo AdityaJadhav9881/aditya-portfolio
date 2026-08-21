@@ -4,10 +4,22 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { FadeIn } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
-import { projects } from "@/data/projects";
 
-export default function SelectedProjects() {
-  const featured = projects.slice(0, 3);
+interface Project {
+  id: string;
+  slug: string;
+  name: string;
+  oneLine: string | null;
+  year: number | null;
+  category: string | null;
+}
+
+interface SelectedProjectsProps {
+  projects?: Project[];
+}
+
+export default function SelectedProjects({ projects = [] }: SelectedProjectsProps) {
+  const featured = projects.slice(0, 5);
 
   return (
     <section className="py-24 md:py-32 px-6">
@@ -28,7 +40,7 @@ export default function SelectedProjects() {
               href="/projects"
               className="text-xs tracking-[0.12em] uppercase text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors duration-200"
             >
-              View all projects →
+              View all projects
             </Link>
           </FadeIn>
         </div>
@@ -36,7 +48,7 @@ export default function SelectedProjects() {
         <div className="space-y-0">
           {featured.map((project, i) => (
             <FadeIn key={project.id} delay={0.1 + i * 0.1}>
-              <Link href={`/projects/${project.id}`}>
+              <Link href={`/projects/${project.slug}`}>
                 <motion.div
                   className="group relative py-8 md:py-10 border-t border-[var(--color-border)] last:border-b cursor-pointer"
                   whileHover={{ x: 8 }}
@@ -62,7 +74,7 @@ export default function SelectedProjects() {
                         {project.year}
                       </span>
                       <span className="hidden md:block text-[10px] tracking-[0.12em] uppercase text-[var(--color-text-muted)] border border-[var(--color-border)] px-3 py-1 rounded-sm">
-                        {project.category.split("/")[0].trim()}
+                        {project.category?.split("/")[0].trim()}
                       </span>
                       <svg
                         className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-all duration-300 group-hover:translate-x-1"

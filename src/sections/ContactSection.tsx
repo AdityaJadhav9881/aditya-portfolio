@@ -3,7 +3,13 @@
 import { FadeIn } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
 
-export default function ContactSection() {
+interface ContactSectionProps {
+  email?: string;
+  linkedin?: string;
+  github?: string;
+}
+
+export default function ContactSection({ email, linkedin, github }: ContactSectionProps) {
   return (
     <section className="py-24 md:py-32 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -27,31 +33,37 @@ export default function ContactSection() {
 
           <FadeIn delay={0.3}>
             <div className="mt-12 flex flex-col sm:flex-row gap-6">
-              <a
-                href="mailto:adityajadhav0167@gmail.com"
-                className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
-                Email
-              </a>
-              <a
-                href="https://www.linkedin.com/in/aditya-jadhav-640a03371"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
-                LinkedIn
-              </a>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
-                GitHub
-              </a>
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+                  Email
+                </a>
+              )}
+              {linkedin && (
+                <a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+                  LinkedIn
+                </a>
+              )}
+              {github && (
+                <a
+                  href={github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-sm tracking-[0.08em] text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-200"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+                  GitHub
+                </a>
+              )}
             </div>
           </FadeIn>
         </div>

@@ -3,7 +3,11 @@
 import { FadeIn } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
 
-export default function Identity() {
+interface IdentityProps {
+  bio?: string;
+}
+
+export default function Identity({ bio }: IdentityProps) {
   return (
     <section className="py-24 md:py-32 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -20,9 +24,7 @@ export default function Identity() {
 
           <FadeIn delay={0.2}>
             <p className="mt-8 text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed max-w-2xl">
-              From electronics experiments to complete hardware-software systems,
-              my work is driven by curiosity. I don&apos;t want to simply use technology —
-              I want to understand it, experiment with it, build it, and improve it.
+              {bio || "From electronics experiments to complete hardware-software systems, my work is driven by curiosity. I don't want to simply use technology — I want to understand it, experiment with it, build it, and improve it."}
             </p>
           </FadeIn>
 

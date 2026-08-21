@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { FadeIn, FadeInStagger, FadeInItem } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
-import { projects } from "@/data/projects";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -10,7 +12,17 @@ export const metadata: Metadata = {
     "Engineering projects by Aditya Jadhav — from IoT energy systems to custom hardware and power electronics.",
 };
 
-export default function ProjectsPage() {
+async function getProjects() {
+  return prisma.project.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { displayOrder: "asc" },
+    include: { media: { where: { role: "COVER", visible: true }, take: 1 } },
+  });
+}
+
+export default async function ProjectsPage() {
+  const projects = await getProjects();
+
   return (
     <div className="py-24 md:py-32 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -35,7 +47,7 @@ export default function ProjectsPage() {
           <div className="space-y-0">
             {projects.map((project, i) => (
               <FadeInItem key={project.id}>
-                <Link href={`/projects/${project.id}`}>
+                <Link href={`/projects/${project.slug}`}>
                   <div className="group py-8 md:py-10 border-t border-[var(--color-border)] last:border-b cursor-pointer">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
                       <div className="flex-1">
@@ -57,7 +69,7 @@ export default function ProjectsPage() {
                           {project.year}
                         </span>
                         <span className="hidden md:block text-[10px] tracking-[0.12em] uppercase text-[var(--color-text-muted)] border border-[var(--color-border)] px-3 py-1 rounded-sm">
-                          {project.category.split("/")[0].trim()}
+                          {project.category?.split("/")[0].trim()}
                         </span>
                         <svg
                           className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-all duration-300 group-hover:translate-x-1"

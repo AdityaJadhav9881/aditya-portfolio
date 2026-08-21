@@ -3,9 +3,23 @@
 import Link from "next/link";
 import { FadeIn, FadeInStagger, FadeInItem } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
-import { skillGroups } from "@/data/skills";
 
-export default function SkillsPreview() {
+interface Skill {
+  name: string;
+}
+
+interface SkillGroupData {
+  id: string;
+  name: string;
+  description: string | null;
+  skills: Skill[];
+}
+
+interface SkillsPreviewProps {
+  skillGroups?: SkillGroupData[];
+}
+
+export default function SkillsPreview({ skillGroups = [] }: SkillsPreviewProps) {
   return (
     <section className="py-24 md:py-32 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -25,7 +39,7 @@ export default function SkillsPreview() {
               href="/skills"
               className="text-xs tracking-[0.12em] uppercase text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors duration-200"
             >
-              All skills →
+              All skills
             </Link>
           </FadeIn>
         </div>

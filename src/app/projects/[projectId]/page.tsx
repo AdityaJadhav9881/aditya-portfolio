@@ -1,44 +1,47 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { FadeIn } from "@/components/FadeIn";
-import SectionLabel from "@/components/SectionLabel";
-import { projects, getProjectById, getRelatedProjects } from "@/data/projects";
-import { getAllSkills } from "@/data/skills";
+
+export const dynamic = "force-dynamic";
 
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;
 }
 
-export async function generateStaticParams() {
-  return projects.map((project) => ({ projectId: project.id }));
-}
-
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const { projectId } = await params;
-  const project = getProjectById(projectId);
+  const project = await prisma.project.findUnique({ where: { slug: projectId } });
   if (!project) return { title: "Project Not Found" };
   return {
-    title: project.name,
-    description: project.oneLine,
+    title: project.seoTitle || project.name,
+    description: project.seoDescription || project.oneLine || "",
     openGraph: {
       title: `${project.name} | Aditya Jadhav`,
-      description: project.oneLine,
+      description: project.seoDescription || project.oneLine || "",
     },
   };
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { projectId } = await params;
-  const project = getProjectById(projectId);
-  if (!project) notFound();
+  const project = await prisma.project.findUnique({
+    where: { slug: projectId },
+    include: {
+      sections: { where: { visible: true }, orderBy: { displayOrder: "asc" } },
+      projectSkills: { include: { skill: true } },
+      media: { where: { visible: true }, orderBy: { displayOrder: "asc" } },
+      relatedProjects: {
+        include: { relatedProject: { select: { slug: true, name: true } } },
+      },
+    },
+  });
 
-  const relatedProjects = getRelatedProjects(projectId);
-  const allSkills = getAllSkills();
-  const relatedSkillNames = project.relatedSkills
-    .map((id) => allSkills.find((s) => s.name.toLowerCase().replace(/\s+/g, "-") === id))
-    .filter(Boolean)
-    .map((s) => s!.name);
+  if (!project || project.status !== "PUBLISHED") notFound();
+
+  const relatedSkillNames = project.projectSkills.map((ps) => ps.skill.name);
+  const relatedProjects = project.relatedProjects.map((rp) => rp.relatedProject);
 
   return (
     <div className="py-24 md:py-32 px-6">
@@ -93,18 +96,20 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             { label: "The Problem", content: project.problem },
             { label: "What I Designed", content: project.designed },
             { label: "How It Works", content: project.howItWorks },
-          ].map((section) => (
-            <FadeIn key={section.label}>
-              <div className="mb-16">
-                <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
-                  {section.label}
-                </h2>
-                <p className="text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed">
-                  {section.content}
-                </p>
-              </div>
-            </FadeIn>
-          ))}
+          ].map((section) =>
+            section.content ? (
+              <FadeIn key={section.label}>
+                <div className="mb-16">
+                  <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
+                    {section.label}
+                  </h2>
+                  <p className="text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed">
+                    {section.content}
+                  </p>
+                </div>
+              </FadeIn>
+            ) : null
+          )}
 
           <FadeIn>
             <div className="mb-16">
@@ -112,15 +117,17 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 Key Features
               </h2>
               <ul className="space-y-3">
-                {project.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-3 text-base text-[var(--color-text-secondary)]"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] mt-2 flex-shrink-0" />
-                    {feature}
-                  </li>
-                ))}
+                {project.sections
+                  .filter((s) => s.sectionType === "FEATURES")
+                  .map((feature) => (
+                    <li
+                      key={feature.id}
+                      className="flex items-start gap-3 text-base text-[var(--color-text-secondary)]"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] mt-2 flex-shrink-0" />
+                      {feature.title || feature.content}
+                    </li>
+                  ))}
               </ul>
             </div>
           </FadeIn>
@@ -129,18 +136,20 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             { label: "Engineering", content: project.engineering },
             { label: "Result", content: project.result },
             { label: "What I Learned", content: project.learned },
-          ].map((section) => (
-            <FadeIn key={section.label}>
-              <div className="mb-16">
-                <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
-                  {section.label}
-                </h2>
-                <p className="text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed">
-                  {section.content}
-                </p>
-              </div>
-            </FadeIn>
-          ))}
+          ].map((section) =>
+            section.content ? (
+              <FadeIn key={section.label}>
+                <div className="mb-16">
+                  <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
+                    {section.label}
+                  </h2>
+                  <p className="text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed">
+                    {section.content}
+                  </p>
+                </div>
+              </FadeIn>
+            ) : null
+          )}
         </div>
 
         {(relatedSkillNames.length > 0 || relatedProjects.length > 0) && (
@@ -173,11 +182,11 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                     <div className="space-y-3">
                       {relatedProjects.map((rp) => (
                         <Link
-                          key={rp.id}
-                          href={`/projects/${rp.id}`}
+                          key={rp.slug}
+                          href={`/projects/${rp.slug}`}
                           className="block text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors duration-200"
                         >
-                          {rp.name} →
+                          {rp.name}
                         </Link>
                       ))}
                     </div>

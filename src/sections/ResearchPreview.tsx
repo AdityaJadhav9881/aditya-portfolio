@@ -3,9 +3,24 @@
 import Link from "next/link";
 import { FadeIn } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
-import { research } from "@/data/research";
 
-export default function ResearchPreview() {
+interface ResearchProject {
+  project: { slug: string; name: string };
+}
+
+interface ResearchEntry {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  researchProjects: ResearchProject[];
+}
+
+interface ResearchPreviewProps {
+  research?: ResearchEntry[];
+}
+
+export default function ResearchPreview({ research = [] }: ResearchPreviewProps) {
   return (
     <section className="py-24 md:py-32 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -33,7 +48,7 @@ export default function ResearchPreview() {
         <div className="space-y-0">
           {research.map((entry, i) => (
             <FadeIn key={entry.id} delay={0.1 + i * 0.1}>
-              <Link href={`/research#${entry.id}`}>
+              <Link href={`/research#${entry.slug}`}>
                 <div className="group py-8 md:py-10 border-t border-[var(--color-border)] last:border-b cursor-pointer">
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="flex-1">
@@ -44,9 +59,6 @@ export default function ResearchPreview() {
                         {entry.description}
                       </p>
                     </div>
-                    <span className="text-xs text-[var(--color-text-muted)] tracking-wider font-mono">
-                      Related: {entry.project.replace(/-/g, " ")}
-                    </span>
                   </div>
                 </div>
               </Link>

@@ -3,9 +3,25 @@
 import Link from "next/link";
 import { FadeIn } from "@/components/FadeIn";
 import SectionLabel from "@/components/SectionLabel";
-import { journey } from "@/data/journey";
 
-export default function JourneyPreview() {
+interface JourneyProject {
+  project: { slug: string; name: string };
+}
+
+interface JourneyEntry {
+  id: string;
+  year: number;
+  title: string;
+  description: string | null;
+  type: string;
+  journeyProjects: JourneyProject[];
+}
+
+interface JourneyPreviewProps {
+  journey?: JourneyEntry[];
+}
+
+export default function JourneyPreview({ journey = [] }: JourneyPreviewProps) {
   const display = journey.slice(-4);
 
   return (
@@ -37,12 +53,12 @@ export default function JourneyPreview() {
 
           <div className="space-y-12 md:space-y-16">
             {display.map((entry, i) => (
-              <FadeIn key={entry.year + entry.title} delay={0.1 + i * 0.1}>
+              <FadeIn key={entry.id} delay={0.1 + i * 0.1}>
                 <div className="flex gap-6 md:gap-8">
                   <div className="relative z-10 w-10 md:w-12 flex-shrink-0">
                     <div
                       className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full border-2 mt-1.5 ${
-                        entry.type === "ongoing"
+                        entry.type === "ONGOING"
                           ? "border-[var(--color-accent)] bg-[var(--color-accent-glow)]"
                           : "border-[var(--color-text-muted)] bg-[var(--color-bg-primary)]"
                       }`}
