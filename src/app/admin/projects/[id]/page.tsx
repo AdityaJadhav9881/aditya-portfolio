@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { updateProject, deleteProject } from "../../actions/project";
 import SectionManager from "../../components/SectionManager";
 import RelationshipManager from "../../components/RelationshipManager";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 type Tab = "basic" | "story" | "technical" | "sections" | "media" | "relationships" | "settings" | "seo";
 
@@ -117,6 +118,19 @@ export default function EditProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [dropdownData, setDropdownData] = useState<DropdownData | null>(null);
   const [fetching, setFetching] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useUnsavedChanges(hasChanges);
+
+  useEffect(() => {
+    if (!formRef.current) return;
+    const form = formRef.current;
+    function handleChange() { setHasChanges(true); }
+    form.addEventListener("input", handleChange);
+    form.addEventListener("change", handleChange);
+    return () => { form.removeEventListener("input", handleChange); form.removeEventListener("change", handleChange); };
+  }, [project]);
 
   useEffect(() => {
     fetch(`/api/projects/${id}`)
@@ -140,11 +154,13 @@ export default function EditProjectPage() {
 
   async function handleSubmit(status?: string) {
     setLoading(true);
-    const form = document.querySelector("form") as HTMLFormElement;
+    const form = formRef.current;
+    if (!form) return;
     const formData = new FormData(form);
     if (status) formData.set("status", status);
     try {
       await updateProject(id, formData);
+      setHasChanges(false);
       router.push("/admin/projects");
     } catch { setLoading(false); }
   }
@@ -186,7 +202,7 @@ export default function EditProjectPage() {
         ))}
       </div>
 
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form ref={formRef} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
         {activeTab === "basic" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
             <Input label="Project Name" name="name" required defaultValue={project.name} />

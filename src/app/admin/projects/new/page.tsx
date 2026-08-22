@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createProject } from "../../actions/project";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 type Tab = "basic" | "story" | "technical" | "settings" | "seo";
 
@@ -91,15 +92,30 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("basic");
   const [loading, setLoading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useUnsavedChanges(hasChanges);
+
+  useEffect(() => {
+    if (!formRef.current) return;
+    const form = formRef.current;
+    function handleChange() { setHasChanges(true); }
+    form.addEventListener("input", handleChange);
+    form.addEventListener("change", handleChange);
+    return () => { form.removeEventListener("input", handleChange); form.removeEventListener("change", handleChange); };
+  }, []);
 
   async function handleSubmit(status: "DRAFT" | "PUBLISHED") {
     setLoading(true);
-    const form = document.querySelector("form") as HTMLFormElement;
+    const form = formRef.current;
+    if (!form) return;
     const formData = new FormData(form);
     formData.set("status", status);
 
     try {
       await createProject(formData);
+      setHasChanges(false);
       router.push("/admin/projects");
     } catch {
       setLoading(false);
@@ -147,7 +163,7 @@ export default function NewProjectPage() {
         ))}
       </div>
 
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form ref={formRef} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
         {activeTab === "basic" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
             <Input label="Project Name" name="name" required placeholder="My Awesome Project" />
