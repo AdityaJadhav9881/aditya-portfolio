@@ -3,11 +3,12 @@
 import { prisma } from "@/lib/db";
 import { deleteFromR2 } from "@/lib/r2";
 
-export async function updateMedia(id: string, data: { alt?: string; caption?: string; role?: string }) {
+export async function updateMedia(id: string, data: { alt?: string; caption?: string; role?: string; projectId?: string | null }) {
   const updateData: Record<string, unknown> = {};
   if (data.alt !== undefined) updateData.alt = data.alt;
   if (data.caption !== undefined) updateData.caption = data.caption;
   if (data.role !== undefined) updateData.role = data.role as any;
+  if (data.projectId !== undefined) updateData.projectId = data.projectId || null;
   await prisma.media.update({ where: { id }, data: updateData });
 }
 

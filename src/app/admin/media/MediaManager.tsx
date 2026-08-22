@@ -13,8 +13,14 @@ interface MediaItem {
   alt: string | null;
   caption: string | null;
   role: string;
+  projectId: string | null;
   project: { name: string } | null;
   createdAt: Date;
+}
+
+interface Project {
+  id: string;
+  name: string;
 }
 
 const ROLES = ["COVER", "HERO", "GALLERY", "DIAGRAM", "HARDWARE", "TESTING", "OTHER"];
@@ -25,7 +31,7 @@ const MIME_FILTERS = [
   { label: "PDFs", value: "application/pdf" },
 ];
 
-export default function MediaManager({ media }: { media: MediaItem[] }) {
+export default function MediaManager({ media, projects }: { media: MediaItem[]; projects: Project[] }) {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -34,6 +40,7 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
   const [editAlt, setEditAlt] = useState("");
   const [editCaption, setEditCaption] = useState("");
   const [editRole, setEditRole] = useState("");
+  const [editProjectId, setEditProjectId] = useState<string>("");
 
   const filtered = useMemo(() => {
     return media.filter((item) => {
@@ -71,11 +78,17 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
     setEditAlt(item.alt || "");
     setEditCaption(item.caption || "");
     setEditRole(item.role);
+    setEditProjectId(item.projectId || "");
   }
 
   async function saveEdit() {
     if (!editingId) return;
-    await updateMedia(editingId, { alt: editAlt, caption: editCaption, role: editRole });
+    await updateMedia(editingId, {
+      alt: editAlt,
+      caption: editCaption,
+      role: editRole,
+      projectId: editProjectId || null,
+    });
     setEditingId(null);
     window.location.reload();
   }
@@ -165,9 +178,22 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
       {/* Edit Modal */}
       {editingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setEditingId(null)}>
-          <div className="rounded-xl p-6 w-full max-w-md" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }} onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4" style={{ color: "#e8e8ec" }}>Edit Media</h2>
             <div className="space-y-4">
+              <div>
+                <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>Assign to Project</label>
+                <select value={editProjectId} onChange={(e) => setEditProjectId(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
+                  <option value="">No project</option>
+                  {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>Role</label>
+                <select value={editRole} onChange={(e) => setEditRole(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
+                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>Alt Text</label>
                 <input type="text" value={editAlt} onChange={(e) => setEditAlt(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
@@ -175,12 +201,6 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
               <div>
                 <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>Caption</label>
                 <input type="text" value={editCaption} onChange={(e) => setEditCaption(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
-              </div>
-              <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>Role</label>
-                <select value={editRole} onChange={(e) => setEditRole(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
-                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
               </div>
             </div>
             <div className="flex gap-3 mt-6">
