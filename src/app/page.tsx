@@ -94,20 +94,22 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
-      <Identity bio={String(settingsMap.bio || '')} />
-      <SelectedProjects projects={serializableProjects as any} />
-      <Philosophy />
-      <SkillsPreview skillGroups={serializableSkills as any} />
-      <JourneyPreview journey={serializableJourney as any} />
-      <ResearchPreview research={serializableResearch as any} />
-      <Future />
-      <ContactSection
-        email={String(settingsMap.email || '')}
-        linkedin={String(settingsMap.linkedin || '')}
-        github={String(settingsMap.github || '')}
-      />
-      <Continuation />
+      {settingsMap.homepage_hero_visible !== "false" && <Hero />}
+      {settingsMap.homepage_identity_visible !== "false" && <Identity bio={String(settingsMap.bio || '')} />}
+      {settingsMap.homepage_projects_visible !== "false" && <SelectedProjects projects={serializableProjects as any} />}
+      {settingsMap.homepage_philosophy_visible !== "false" && <Philosophy />}
+      {settingsMap.homepage_skills_visible !== "false" && <SkillsPreview skillGroups={serializableSkills as any} />}
+      {settingsMap.homepage_journey_visible !== "false" && <JourneyPreview journey={serializableJourney as any} />}
+      {settingsMap.homepage_research_visible !== "false" && <ResearchPreview research={serializableResearch as any} />}
+      {settingsMap.homepage_future_visible !== "false" && <Future />}
+      {settingsMap.homepage_contact_visible !== "false" && (
+        <ContactSection
+          email={String(settingsMap.email || '')}
+          linkedin={String(settingsMap.linkedin || '')}
+          github={String(settingsMap.github || '')}
+        />
+      )}
+      {settingsMap.homepage_continuation_visible !== "false" && <Continuation />}
     </>
   )
 }

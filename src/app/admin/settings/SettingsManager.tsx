@@ -24,6 +24,19 @@ const settingFields = [
   { key: "seoKeywords", label: "SEO Keywords", type: "text" },
 ];
 
+const homepageSections = [
+  { key: "homepage_hero_visible", label: "Hero" },
+  { key: "homepage_identity_visible", label: "Identity / Bio" },
+  { key: "homepage_projects_visible", label: "Selected Projects" },
+  { key: "homepage_philosophy_visible", label: "Philosophy" },
+  { key: "homepage_skills_visible", label: "Skills Preview" },
+  { key: "homepage_journey_visible", label: "Journey Preview" },
+  { key: "homepage_research_visible", label: "Research Preview" },
+  { key: "homepage_future_visible", label: "Future" },
+  { key: "homepage_contact_visible", label: "Contact" },
+  { key: "homepage_continuation_visible", label: "Continuation" },
+];
+
 export default function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -39,6 +52,11 @@ export default function SettingsManager({ settings, onUpdate }: SettingsManagerP
     for (const field of settingFields) {
       const value = formData.get(field.key);
       await onUpdate(field.key, typeof value === "string" ? value : "");
+    }
+
+    for (const section of homepageSections) {
+      const checked = formData.get(section.key) === "on";
+      await onUpdate(section.key, checked ? "true" : "false");
     }
 
     setSaving(false);
@@ -90,6 +108,30 @@ export default function SettingsManager({ settings, onUpdate }: SettingsManagerP
             )}
           </div>
         ))}
+
+        <h3 className="text-xs font-medium uppercase tracking-wider pt-4" style={{ color: "#00c8e0" }}>Homepage Sections</h3>
+        <p className="text-xs mb-3" style={{ color: "#8888a0" }}>Toggle which sections appear on the homepage.</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {homepageSections.map((section) => {
+            const isEnabled = String(settings[section.key] || "true") !== "false";
+            return (
+              <label
+                key={section.key}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer"
+                style={{ background: "#0c0c14", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <input
+                  type="checkbox"
+                  name={section.key}
+                  defaultChecked={isEnabled}
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: "#00c8e0" }}
+                />
+                <span className="text-sm" style={{ color: "#e8e8ec" }}>{section.label}</span>
+              </label>
+            );
+          })}
+        </div>
 
         <div className="flex items-center gap-3 pt-2">
           <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50" style={{ background: "#00c8e0", color: "#0a0a0f" }}>

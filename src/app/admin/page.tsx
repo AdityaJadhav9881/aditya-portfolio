@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
@@ -8,7 +7,7 @@ export default async function AdminDashboard() {
   const session = await getSession();
   if (!session) redirect("/admin/login");
 
-  const [projectCounts, skillCount, researchCount, achievementCount, journeyCount] = await Promise.all([
+  const [projectCounts, skillCount, researchCount, achievementCount, journeyCount, mediaCount] = await Promise.all([
     prisma.project.groupBy({
       by: ["status"],
       _count: true,
@@ -17,6 +16,7 @@ export default async function AdminDashboard() {
     prisma.researchEntry.count(),
     prisma.achievement.count(),
     prisma.journeyEntry.count(),
+    prisma.media.count(),
   ]);
 
   const totalProjects = projectCounts.reduce<number>((acc: number, g: any) => acc + g._count, 0);
@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
     { label: "Skills", value: skillCount, color: "#e8e8ec" },
     { label: "Research", value: researchCount, color: "#e8e8ec" },
     { label: "Achievements", value: achievementCount, color: "#e8e8ec" },
-    { label: "Journey Entries", value: journeyCount, color: "#e8e8ec" },
+    { label: "Media", value: mediaCount, color: "#e8e8ec" },
   ];
 
   const quickActions = [
