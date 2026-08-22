@@ -66,6 +66,10 @@ export default function ResearchManager({ entries }: { entries: ResearchEntryDat
             <textarea name="links" placeholder='{"url": "...", "label": "..."}' rows={3} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-y" style={inputStyle} />
           </div>
           <input name="displayOrder" type="number" placeholder="Display Order (0)" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
+          <label className="flex items-center gap-2 text-sm" style={{ color: "#8888a0" }}>
+            <input type="checkbox" name="visible" defaultChecked className="rounded" />
+            Visible on public site
+          </label>
           <div className="flex gap-2">
             <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium" style={{ background: "#00c8e0", color: "#0a0a0f" }}>Save</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>Cancel</button>
@@ -86,7 +90,7 @@ export default function ResearchManager({ entries }: { entries: ResearchEntryDat
             <div className="flex gap-2 shrink-0">
               <button onClick={() => { setEditing(entry.id); setShowForm(true); }} className="text-xs" style={{ color: "#8888a0" }}>Edit</button>
               <form action={deleteResearchEntry.bind(null, entry.id)}>
-                <button className="text-xs" style={{ color: "#ef4444" }}>Delete</button>
+                <button className="text-xs" style={{ color: "#ef4444" }} onClick={(e) => { if (!confirm("Delete this entry?")) e.preventDefault(); }}>Delete</button>
               </form>
             </div>
           </div>

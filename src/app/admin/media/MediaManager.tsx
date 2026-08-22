@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { deleteMedia } from "../actions/media";
 
 interface MediaItem {
   id: string;
@@ -34,6 +35,12 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this media file?")) return;
+    await deleteMedia(id);
+    window.location.reload();
   }
 
   function formatSize(bytes: number) {
@@ -83,8 +90,15 @@ export default function MediaManager({ media }: { media: MediaItem[] }) {
             <div className="p-3">
               <p className="text-xs truncate" style={{ color: "#e8e8ec" }}>{item.originalName}</p>
               <p className="text-xs mt-1" style={{ color: "#55556a" }}>
-                {formatSize(item.size)} {item.project ? `· ${item.project.name}` : ""}
+                {formatSize(item.size)} {item.project ? `\u00b7 ${item.project.name}` : ""}
               </p>
+              <button
+                onClick={() => handleDelete(item.id)}
+                className="text-xs mt-2"
+                style={{ color: "#ef4444" }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}

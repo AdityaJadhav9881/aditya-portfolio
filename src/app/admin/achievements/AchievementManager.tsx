@@ -65,6 +65,10 @@ export default function AchievementManager({ achievements }: { achievements: Ach
             <input name="category" placeholder="Category" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
             <input name="displayOrder" type="number" placeholder="Order (0)" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
           </div>
+          <label className="flex items-center gap-2 text-sm" style={{ color: "#8888a0" }}>
+            <input type="checkbox" name="visible" defaultChecked className="rounded" />
+            Visible on public site
+          </label>
           <div className="flex gap-2">
             <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium" style={{ background: "#00c8e0", color: "#0a0a0f" }}>Save</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>Cancel</button>
@@ -83,6 +87,7 @@ export default function AchievementManager({ achievements }: { achievements: Ach
                     {item.category}
                   </span>
                 )}
+                {!item.visible && <span className="text-xs" style={{ color: "#55556a" }}>(hidden)</span>}
               </div>
               <h3 className="font-medium" style={{ color: "#e8e8ec" }}>{item.title}</h3>
               {item.description && (
@@ -92,7 +97,7 @@ export default function AchievementManager({ achievements }: { achievements: Ach
             <div className="flex gap-2 shrink-0">
               <button onClick={() => { setEditing(item.id); setShowForm(true); }} className="text-xs" style={{ color: "#8888a0" }}>Edit</button>
               <form action={deleteAchievement.bind(null, item.id)}>
-                <button className="text-xs" style={{ color: "#ef4444" }}>Delete</button>
+                <button className="text-xs" style={{ color: "#ef4444" }} onClick={(e) => { if (!confirm("Delete this achievement?")) e.preventDefault(); }}>Delete</button>
               </form>
             </div>
           </div>

@@ -46,7 +46,6 @@ export default async function ProjectsPage({
         </Link>
       </div>
 
-      {/* Filters */}
       <form className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
@@ -84,7 +83,6 @@ export default async function ProjectsPage({
         </button>
       </form>
 
-      {/* Desktop table */}
       <div className="hidden md:block rounded-xl overflow-hidden" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
         <table className="w-full text-sm">
           <thead>
@@ -93,6 +91,7 @@ export default async function ProjectsPage({
               <th className="text-left px-4 py-3 font-medium" style={{ color: "#8888a0" }}>Status</th>
               <th className="text-left px-4 py-3 font-medium" style={{ color: "#8888a0" }}>Year</th>
               <th className="text-left px-4 py-3 font-medium" style={{ color: "#8888a0" }}>Featured</th>
+              <th className="text-left px-4 py-3 font-medium" style={{ color: "#8888a0" }}>Homepage</th>
               <th className="text-right px-4 py-3 font-medium" style={{ color: "#8888a0" }}>Actions</th>
             </tr>
           </thead>
@@ -112,9 +111,12 @@ export default async function ProjectsPage({
                     {project.status}
                   </span>
                 </td>
-                <td className="px-4 py-3" style={{ color: "#8888a0" }}>{project.year || "—"}</td>
+                <td className="px-4 py-3" style={{ color: "#8888a0" }}>{project.year || "\u2014"}</td>
                 <td className="px-4 py-3" style={{ color: project.featured ? "#00c8e0" : "#55556a" }}>
-                  {project.featured ? "★" : "☆"}
+                  {project.featured ? "\u2605" : "\u2606"}
+                </td>
+                <td className="px-4 py-3" style={{ color: project.showOnHomepage ? "#22c55e" : "#55556a" }}>
+                  {project.showOnHomepage ? "\u2713" : "\u2014"}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -126,8 +128,17 @@ export default async function ProjectsPage({
                         {project.featured ? "Unfeature" : "Feature"}
                       </button>
                     </form>
+                    <form action={toggleHomepage.bind(null, project.id)}>
+                      <button className="px-2 py-1 rounded text-xs" style={{ color: "#8888a0" }}>
+                        {project.showOnHomepage ? "Hide Home" : "Show Home"}
+                      </button>
+                    </form>
                     <form action={deleteProject.bind(null, project.id)}>
-                      <button className="px-2 py-1 rounded text-xs" style={{ color: "#ef4444" }}>
+                      <button
+                        className="px-2 py-1 rounded text-xs"
+                        style={{ color: "#ef4444" }}
+                        onClick={(e) => { if (!confirm("Delete this project?")) e.preventDefault(); }}
+                      >
                         Delete
                       </button>
                     </form>
@@ -144,7 +155,6 @@ export default async function ProjectsPage({
         )}
       </div>
 
-      {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {projects.map((project) => (
           <div
@@ -164,9 +174,9 @@ export default async function ProjectsPage({
               </span>
             </div>
             <div className="text-xs mb-3" style={{ color: "#8888a0" }}>
-              {project.year || "No year"} {project.featured ? "· ★ Featured" : ""}
+              {project.year || "No year"} {project.featured ? "\u00b7 \u2605 Featured" : ""} {project.showOnHomepage ? "\u00b7 Homepage" : ""}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/admin/projects/${project.id}`} className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
                 Edit
               </Link>
@@ -175,8 +185,17 @@ export default async function ProjectsPage({
                   {project.featured ? "Unfeature" : "Feature"}
                 </button>
               </form>
+              <form action={toggleHomepage.bind(null, project.id)}>
+                <button className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
+                  {project.showOnHomepage ? "Hide Home" : "Show Home"}
+                </button>
+              </form>
               <form action={deleteProject.bind(null, project.id)}>
-                <button className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                <button
+                  className="px-3 py-1.5 rounded text-xs"
+                  style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
+                  onClick={(e) => { if (!confirm("Delete this project?")) e.preventDefault(); }}
+                >
                   Delete
                 </button>
               </form>
