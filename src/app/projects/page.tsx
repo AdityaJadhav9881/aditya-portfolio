@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { FadeIn, FadeInStagger, FadeInItem } from "@/components/FadeIn";
@@ -76,12 +75,10 @@ export default async function ProjectsPage() {
                           </span>
                           {coverMedia && (
                             <div className="hidden md:block relative w-16 h-16 rounded overflow-hidden border border-[var(--color-border)]">
-                              <Image
+                              <img
                                 src={coverMedia.url}
                                 alt={coverMedia.alt || project.name}
-                                fill
-                                sizes="64px"
-                                className="object-cover"
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
                               />
                             </div>
                           )}
