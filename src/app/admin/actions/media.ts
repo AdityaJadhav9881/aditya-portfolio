@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { deleteFromR2 } from "@/lib/r2";
 
 export async function updateMedia(id: string, data: { alt?: string; caption?: string; role?: string }) {
   const updateData: Record<string, unknown> = {};
@@ -11,5 +12,13 @@ export async function updateMedia(id: string, data: { alt?: string; caption?: st
 }
 
 export async function deleteMedia(id: string) {
+  const media = await prisma.media.findUnique({ where: { id } });
+  if (media) {
+    try {
+      await deleteFromR2(media.filename);
+    } catch (e) {
+      console.error("Failed to delete file from storage:", e);
+    }
+  }
   await prisma.media.delete({ where: { id } });
 }

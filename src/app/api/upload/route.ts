@@ -3,6 +3,19 @@ import { prisma } from "@/lib/db";
 import { uploadToR2 } from "@/lib/r2";
 import { getSession } from "@/lib/auth";
 
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "video/mp4",
+  "video/webm",
+  "application/pdf",
+];
+
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB
+
 export async function POST(request: NextRequest) {
   const session = await getSession();
   if (!session) {
@@ -20,21 +33,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const { url, key } = await uploadToR2(file, "portfolio");
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json(
+      { error: `File type not allowed: ${file.type}. Allowed: images, videos, PDFs.` },
+      { status: 400 }
+    );
+  }
 
-  const media = await prisma.media.create({
-    data: {
-      filename: key,
-      originalName: file.name,
-      mimeType: file.type,
-      size: file.size,
-      url,
-      alt,
-      caption,
-      role: role as "COVER" | "HERO" | "GALLERY" | "DIAGRAM" | "HARDWARE" | "TESTING" | "OTHER",
-      projectId: projectId || null,
-    },
-  });
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json(
+      { error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Max: 20MB.` },
+      { status: 400 }
+    );
+  }
 
-  return NextResponse.json(media);
+  try {
+    const { url, key } = await uploadToR2(file, "portfolio");
+
+    const media = await prisma.media.create({
+      data: {
+        filename: key,
+        originalName: file.name,
+        mimeType: file.type,
+        size: file.size,
+        url,
+        alt,
+        caption,
+        role: role as "COVER" | "HERO" | "GALLERY" | "DIAGRAM" | "HARDWARE" | "TESTING" | "OTHER",
+        projectId: projectId || null,
+      },
+    });
+
+    return NextResponse.json(media);
+  } catch (error) {
+    console.error("Upload failed:", error);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  }
 }
