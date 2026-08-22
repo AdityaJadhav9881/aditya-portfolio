@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { toggleFeatured, toggleHomepage, deleteProject } from "../actions/project";
+import { ProjectActions, ProjectActionsMobile } from "../components/ProjectActions";
 
 const statusColors: Record<string, { backgroundColor: string; color: string }> = {
   DRAFT: { backgroundColor: "rgba(234,179,8,0.1)", color: "#eab308" },
@@ -83,6 +83,7 @@ export default async function ProjectsPage({
         </button>
       </form>
 
+      {/* Desktop table */}
       <div className="hidden md:block rounded-xl overflow-hidden" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
         <table className="w-full text-sm">
           <thead>
@@ -119,30 +120,10 @@ export default async function ProjectsPage({
                   {project.showOnHomepage ? "\u2713" : "\u2014"}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link href={`/admin/projects/${project.id}`} className="px-2 py-1 rounded text-xs" style={{ color: "#8888a0" }}>
-                      Edit
-                    </Link>
-                    <form action={toggleFeatured.bind(null, project.id)}>
-                      <button className="px-2 py-1 rounded text-xs" style={{ color: "#8888a0" }}>
-                        {project.featured ? "Unfeature" : "Feature"}
-                      </button>
-                    </form>
-                    <form action={toggleHomepage.bind(null, project.id)}>
-                      <button className="px-2 py-1 rounded text-xs" style={{ color: "#8888a0" }}>
-                        {project.showOnHomepage ? "Hide Home" : "Show Home"}
-                      </button>
-                    </form>
-                    <form action={deleteProject.bind(null, project.id)}>
-                      <button
-                        className="px-2 py-1 rounded text-xs"
-                        style={{ color: "#ef4444" }}
-                        onClick={(e) => { if (!confirm("Delete this project?")) e.preventDefault(); }}
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
+                  <Link href={`/admin/projects/${project.id}`} className="px-2 py-1 rounded text-xs mr-2" style={{ color: "#8888a0" }}>
+                    Edit
+                  </Link>
+                  <ProjectActions id={project.id} featured={project.featured} showOnHomepage={project.showOnHomepage} />
                 </td>
               </tr>
             ))}
@@ -155,6 +136,7 @@ export default async function ProjectsPage({
         )}
       </div>
 
+      {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {projects.map((project) => (
           <div
@@ -176,29 +158,11 @@ export default async function ProjectsPage({
             <div className="text-xs mb-3" style={{ color: "#8888a0" }}>
               {project.year || "No year"} {project.featured ? "\u00b7 \u2605 Featured" : ""} {project.showOnHomepage ? "\u00b7 Homepage" : ""}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <Link href={`/admin/projects/${project.id}`} className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
                 Edit
               </Link>
-              <form action={toggleFeatured.bind(null, project.id)}>
-                <button className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
-                  {project.featured ? "Unfeature" : "Feature"}
-                </button>
-              </form>
-              <form action={toggleHomepage.bind(null, project.id)}>
-                <button className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
-                  {project.showOnHomepage ? "Hide Home" : "Show Home"}
-                </button>
-              </form>
-              <form action={deleteProject.bind(null, project.id)}>
-                <button
-                  className="px-3 py-1.5 rounded text-xs"
-                  style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
-                  onClick={(e) => { if (!confirm("Delete this project?")) e.preventDefault(); }}
-                >
-                  Delete
-                </button>
-              </form>
+              <ProjectActionsMobile id={project.id} featured={project.featured} showOnHomepage={project.showOnHomepage} />
             </div>
           </div>
         ))}
