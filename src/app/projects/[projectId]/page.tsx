@@ -176,7 +176,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 {project.media.map((item: any) => (
                   <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <img
-                      src={item.url}
+                      src={`/api/images?url=${encodeURIComponent(item.url)}`}
                       alt={item.alt || item.originalName}
                       width="800"
                       height="600"
