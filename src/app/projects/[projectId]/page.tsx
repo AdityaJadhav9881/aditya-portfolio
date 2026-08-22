@@ -168,21 +168,20 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
         {project.media.length > 0 && (
           <FadeIn>
-            <div className="mt-20 max-w-4xl">
+            <div className="mt-20 max-w-4xl overflow-hidden">
               <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-8">
                 Gallery
               </h2>
               <div className="space-y-6">
                 {project.media.map((item: any) => (
-                  <div key={item.id} className="rounded-lg overflow-hidden border border-[var(--color-border)]">
-                    <div style={{ maxWidth: "100%", overflow: "hidden" }}>
-                      <img
-                        src={item.url}
-                        alt={item.alt || item.originalName}
-                        loading="lazy"
-                        style={{ maxWidth: "100%", height: "auto", display: "block" }}
-                      />
-                    </div>
+                  <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
+                    <img
+                      src={item.url}
+                      alt={item.alt || item.originalName}
+                      width="800"
+                      height="600"
+                      style={{ width: "100%", height: "auto" }}
+                    />
                     {(item.alt || item.caption) && (
                       <div className="p-3" style={{ background: "#111119" }}>
                         {item.alt && <p className="text-xs" style={{ color: "#8888a0" }}>{item.alt}</p>}
