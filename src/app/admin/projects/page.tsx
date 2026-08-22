@@ -11,12 +11,13 @@ const statusColors: Record<string, { backgroundColor: string; color: string }> =
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; featured?: string }>;
 }) {
   const params = await searchParams;
   const where: Record<string, unknown> = {};
   if (params.status) where.status = params.status;
   if (params.q) where.name = { contains: params.q, mode: "insensitive" };
+  if (params.featured === "1") where.featured = true;
 
   const projects = await prisma.project.findMany({
     where,
@@ -74,6 +75,19 @@ export default async function ProjectsPage({
           <option value="PUBLISHED">Published</option>
           <option value="ARCHIVED">Archived</option>
         </select>
+        <select
+          name="featured"
+          defaultValue={params.featured}
+          className="px-3 py-2 rounded-lg text-sm outline-none"
+          style={{
+            background: "#0c0c14",
+            border: "1px solid rgba(255,255,255,0.06)",
+            color: "#e8e8ec",
+          }}
+        >
+          <option value="">All Projects</option>
+          <option value="1">Featured Only</option>
+        </select>
         <button
           type="submit"
           className="px-3 py-2 rounded-lg text-sm"
@@ -81,6 +95,15 @@ export default async function ProjectsPage({
         >
           Filter
         </button>
+        {(params.q || params.status || params.featured) && (
+          <a
+            href="/admin/projects"
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}
+          >
+            Clear
+          </a>
+        )}
       </form>
 
       {/* Desktop table */}

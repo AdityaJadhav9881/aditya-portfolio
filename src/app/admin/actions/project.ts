@@ -17,13 +17,33 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function validateSlug(slug: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
+function validateYear(year: number | null): boolean {
+  if (year === null) return true;
+  return year >= 2000 && year <= 2100;
+}
+
 export async function createProject(formData: FormData) {
   await requireAdmin();
 
   const name = formData.get("name") as string;
+  if (!name || name.trim().length === 0) {
+    throw new Error("Project name is required");
+  }
+
   const slug = (formData.get("slug") as string) || slugify(name);
-  const oneLine = formData.get("oneLine") as string | null;
+  if (!validateSlug(slug)) {
+    throw new Error("Invalid slug. Use only lowercase letters, numbers, and hyphens.");
+  }
+
   const year = formData.get("year") ? parseInt(formData.get("year") as string) : null;
+  if (!validateYear(year)) {
+    throw new Error("Year must be between 2000 and 2100");
+  }
+  const oneLine = formData.get("oneLine") as string | null;
   const category = formData.get("category") as string | null;
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT";
   const featured = formData.get("featured") === "on";
@@ -79,9 +99,20 @@ export async function updateProject(id: string, formData: FormData) {
   await requireAdmin();
 
   const name = formData.get("name") as string;
+  if (!name || name.trim().length === 0) {
+    throw new Error("Project name is required");
+  }
+
   const slug = (formData.get("slug") as string) || slugify(name);
-  const oneLine = formData.get("oneLine") as string | null;
+  if (!validateSlug(slug)) {
+    throw new Error("Invalid slug. Use only lowercase letters, numbers, and hyphens.");
+  }
+
   const year = formData.get("year") ? parseInt(formData.get("year") as string) : null;
+  if (!validateYear(year)) {
+    throw new Error("Year must be between 2000 and 2100");
+  }
+  const oneLine = formData.get("oneLine") as string | null;
   const category = formData.get("category") as string | null;
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT";
   const featured = formData.get("featured") === "on";
@@ -173,4 +204,71 @@ export async function toggleHomepage(id: string) {
 
   revalidatePath("/admin/projects");
   revalidatePath("/");
+}
+
+export async function duplicateProject(id: string) {
+  await requireAdmin();
+
+  const original = await prisma.project.findUnique({
+    where: { id },
+    include: {
+      sections: true,
+      projectSkills: true,
+      researchProjects: true,
+      achievementProjects: true,
+      relatedProjects: true,
+    },
+  });
+  if (!original) return;
+
+  const newSlug = `${original.slug}-copy-${Date.now()}`;
+
+  const duplicate = await prisma.project.create({
+    data: {
+      name: `${original.name} (Copy)`,
+      slug: newSlug,
+      oneLine: original.oneLine,
+      year: original.year,
+      category: original.category,
+      status: "DRAFT",
+      featured: false,
+      showOnHomepage: false,
+      displayOrder: 0,
+      description: original.description,
+      problem: original.problem,
+      designed: original.designed,
+      howItWorks: original.howItWorks,
+      engineering: original.engineering,
+      result: original.result,
+      learned: original.learned,
+      technologies: original.technologies,
+      seoTitle: original.seoTitle,
+      seoDescription: original.seoDescription,
+      sections: {
+        create: original.sections.map((s: any) => ({
+          sectionType: s.sectionType,
+          title: s.title,
+          content: s.content,
+          visible: s.visible,
+          displayOrder: s.displayOrder,
+        })),
+      },
+      projectSkills: {
+        create: original.projectSkills.map((ps: any) => ({ skillId: ps.skillId })),
+      },
+      researchProjects: {
+        create: original.researchProjects.map((rp: any) => ({ researchId: rp.researchId })),
+      },
+      achievementProjects: {
+        create: original.achievementProjects.map((ap: any) => ({ achievementId: ap.achievementId })),
+      },
+      relatedProjects: {
+        create: original.relatedProjects.map((rp: any) => ({ relatedProjectId: rp.relatedProjectId })),
+      },
+    },
+  });
+
+  revalidatePath("/admin/projects");
+  revalidatePath("/projects");
+  redirect(`/admin/projects/${duplicate.id}`);
 }

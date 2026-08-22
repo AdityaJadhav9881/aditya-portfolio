@@ -1,6 +1,6 @@
 "use client";
 
-import { toggleFeatured, toggleHomepage, deleteProject } from "../actions/project";
+import { toggleFeatured, toggleHomepage, duplicateProject, deleteProject } from "../actions/project";
 
 export function ProjectActions({
   id,
@@ -21,6 +21,15 @@ export function ProjectActions({
       <form action={toggleHomepage.bind(null, id)}>
         <button className="px-2 py-1 rounded text-xs" style={{ color: "#8888a0" }}>
           {showOnHomepage ? "Hide Home" : "Show Home"}
+        </button>
+      </form>
+      <form action={duplicateProject.bind(null, id)}>
+        <button
+          className="px-2 py-1 rounded text-xs"
+          style={{ color: "#8888a0" }}
+          onClick={(e) => { if (!confirm("Duplicate this project?")) e.preventDefault(); }}
+        >
+          Duplicate
         </button>
       </form>
       <form action={deleteProject.bind(null, id)}>
@@ -55,6 +64,15 @@ export function ProjectActionsMobile({
       <form action={toggleHomepage.bind(null, id)}>
         <button className="px-3 py-1.5 rounded text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>
           {showOnHomepage ? "Hide Home" : "Show Home"}
+        </button>
+      </form>
+      <form action={duplicateProject.bind(null, id)}>
+        <button
+          className="px-3 py-1.5 rounded text-xs"
+          style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}
+          onClick={(e) => { if (!confirm("Duplicate this project?")) e.preventDefault(); }}
+        >
+          Duplicate
         </button>
       </form>
       <form action={deleteProject.bind(null, id)}>

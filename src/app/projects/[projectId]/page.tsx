@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -165,6 +166,34 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             ) : null
           )}
         </div>
+
+        {project.media.length > 0 && (
+          <FadeIn>
+            <div className="mt-20 max-w-4xl">
+              <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-8">
+                Gallery
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {project.media.map((item: any) => (
+                  <div key={item.id} className="relative aspect-video rounded-lg overflow-hidden border border-[var(--color-border)]">
+                    <Image
+                      src={item.url}
+                      alt={item.alt || item.originalName}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                    {(item.alt || item.caption) && (
+                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                        {item.caption && <p className="text-xs text-white/80">{item.caption}</p>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+        )}
 
         {(relatedSkillNames.length > 0 || relatedProjects.length > 0) && (
           <FadeIn>
