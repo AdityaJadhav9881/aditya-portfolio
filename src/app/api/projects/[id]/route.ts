@@ -6,11 +6,27 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const project = await prisma.project.findUnique({ where: { id } });
+  const project = await prisma.project.findUnique({
+    where: { id },
+    include: {
+      sections: { orderBy: { displayOrder: "asc" } },
+      projectSkills: { select: { skillId: true } },
+      researchProjects: { select: { researchId: true } },
+      achievementProjects: { select: { achievementId: true } },
+      relatedProjects: { select: { relatedProjectId: true } },
+      media: { orderBy: { displayOrder: "asc" } },
+    },
+  });
 
   if (!project) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(project);
+  return NextResponse.json({
+    ...project,
+    linkedSkillIds: project.projectSkills.map((ps) => ps.skillId),
+    linkedResearchIds: project.researchProjects.map((rp) => rp.researchId),
+    linkedAchievementIds: project.achievementProjects.map((ap) => ap.achievementId),
+    linkedProjectIds: project.relatedProjects.map((rp) => rp.relatedProjectId),
+  });
 }

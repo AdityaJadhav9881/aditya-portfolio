@@ -39,6 +39,7 @@ export default async function AdminDashboard() {
     { href: "/admin/projects/new", label: "Add Project" },
     { href: "/admin/research", label: "Add Research" },
     { href: "/admin/achievements", label: "Add Achievement" },
+    { href: "/admin/media", label: "Upload Media" },
   ];
 
   return (

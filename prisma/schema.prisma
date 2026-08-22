@@ -89,13 +89,14 @@ model Project {
   updatedAt DateTime @updatedAt
 
   // Relations
-  sections          ProjectSection[]
-  projectSkills     ProjectSkill[]
-  media             Media[]
-  journeyProjects   JourneyProject[]
-  researchProjects  ResearchProject[]
-  relatedProjects   ProjectRelatedProject[] @relation("ProjectToRelated")
-  relatedBy         ProjectRelatedProject[] @relation("RelatedToProject")
+  sections            ProjectSection[]
+  projectSkills       ProjectSkill[]
+  media               Media[]
+  journeyProjects     JourneyProject[]
+  researchProjects    ResearchProject[]
+  achievementProjects AchievementProject[]
+  relatedProjects     ProjectRelatedProject[] @relation("ProjectToRelated")
+  relatedBy           ProjectRelatedProject[] @relation("RelatedToProject")
 
   @@index([status])
   @@index([category])
@@ -232,6 +233,8 @@ model ResearchProject {
 model Achievement {
   id           String  @id @default(cuid())
   title        String
+  event        String?
+  organization String?
   description  String? @db.Text
   year         Int?
   category     String?
@@ -241,10 +244,23 @@ model Achievement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  achievementProjects AchievementProject[]
+
   @@index([year])
   @@index([category])
   @@index([displayOrder])
   @@index([visible])
+}
+
+model AchievementProject {
+  achievementId String
+  projectId     String
+
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([achievementId, projectId])
+  @@index([projectId])
 }
 
 model Media {

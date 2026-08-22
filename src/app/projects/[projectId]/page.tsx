@@ -14,12 +14,26 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const { projectId } = await params;
   const project = await prisma.project.findUnique({ where: { slug: projectId } });
   if (!project) return { title: "Project Not Found" };
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portfolio.vercel.app";
+  const ogImage = project.ogImage || `${siteUrl}/api/og?title=${encodeURIComponent(project.name)}`;
+
   return {
-    title: project.seoTitle || project.name,
+    title: project.seoTitle || `${project.name} | Aditya Jadhav`,
     description: project.seoDescription || project.oneLine || "",
+    alternates: { canonical: `${siteUrl}/projects/${project.slug}` },
     openGraph: {
       title: `${project.name} | Aditya Jadhav`,
       description: project.seoDescription || project.oneLine || "",
+      url: `${siteUrl}/projects/${project.slug}`,
+      siteName: "Aditya Jadhav Portfolio",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.name} | Aditya Jadhav`,
+      description: project.seoDescription || project.oneLine || "",
+      images: [ogImage],
     },
   };
 }
