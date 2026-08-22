@@ -167,7 +167,6 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
 
         {project.media.length > 0 && (
-          <FadeIn>
             <div className="mt-20 max-w-4xl overflow-hidden">
               <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-8">
                 Gallery
@@ -176,7 +175,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 {project.media.map((item: any) => (
                   <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <img
-                      src={`/api/images?url=${encodeURIComponent(item.url)}`}
+                      src={item.url}
                       alt={item.alt || item.originalName}
                       width="800"
                       height="600"
@@ -192,7 +191,6 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 ))}
               </div>
             </div>
-          </FadeIn>
         )}
 
         {(relatedSkillNames.length > 0 || relatedProjects.length > 0) && (

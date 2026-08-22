@@ -76,7 +76,7 @@ export default async function ProjectsPage() {
                           {coverMedia && (
                             <div className="hidden md:block w-16 h-16 rounded overflow-hidden border border-[var(--color-border)] flex-shrink-0">
                               <img
-                                src={`/api/images?url=${encodeURIComponent(coverMedia.url)}`}
+                                src={coverMedia.url}
                                 alt={coverMedia.alt || project.name}
                                 style={{ width: "64px", height: "64px", objectFit: "cover", display: "block" }}
                               />
