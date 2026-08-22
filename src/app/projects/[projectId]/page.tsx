@@ -175,12 +175,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               <div className="space-y-6">
                 {project.media.map((item: any) => (
                   <div key={item.id} className="rounded-lg overflow-hidden border border-[var(--color-border)]">
-                    <img
-                      src={item.url}
-                      alt={item.alt || item.originalName}
-                      loading="lazy"
-                      style={{ width: "100%", height: "auto", display: "block" }}
-                    />
+                    <div style={{ maxWidth: "100%", overflow: "hidden" }}>
+                      <img
+                        src={item.url}
+                        alt={item.alt || item.originalName}
+                        loading="lazy"
+                        style={{ maxWidth: "100%", height: "auto", display: "block" }}
+                      />
+                    </div>
                     {(item.alt || item.caption) && (
                       <div className="p-3" style={{ background: "#111119" }}>
                         {item.alt && <p className="text-xs" style={{ color: "#8888a0" }}>{item.alt}</p>}

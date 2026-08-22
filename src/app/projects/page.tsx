@@ -74,11 +74,11 @@ export default async function ProjectsPage() {
                             {project.category?.split("/")[0].trim()}
                           </span>
                           {coverMedia && (
-                            <div className="hidden md:block relative w-16 h-16 rounded overflow-hidden border border-[var(--color-border)]">
+                            <div className="hidden md:block w-16 h-16 rounded overflow-hidden border border-[var(--color-border)] flex-shrink-0">
                               <img
                                 src={coverMedia.url}
                                 alt={coverMedia.alt || project.name}
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                style={{ width: "64px", height: "64px", objectFit: "cover", display: "block" }}
                               />
                             </div>
                           )}
