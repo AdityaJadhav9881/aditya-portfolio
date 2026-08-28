@@ -1,6 +1,6 @@
 # INFINITY DESIGN — PROJECT HANDOFF REPORT
 
-> Read this file to get instantly up to speed on the project. Last updated: 2026-08-22.
+> Read this file to get instantly up to speed on the project. Last updated: 2026-08-28.
 
 ---
 
@@ -9,9 +9,12 @@
 **What:** Database-driven CMS portfolio for Aditya Jadhav (Infinity Design)
 **Stack:** Next.js 16.3.2, App Router, Turbopack, TypeScript, React 19, Tailwind CSS v4, Framer Motion 13.1.1, Prisma 7.9.1, PostgreSQL (Neon)
 **Repo:** `https://github.com/AdityaJadhav9881/aditya-portfolio` branch `master`
-**Live:** `https://portfolio-eosin-three-u687fkfa7s.vercel.app`
-**Admin:** `https://portfolio-eosin-three-u687fkfa7s.vercel.app/admin`
+**Live:** `https://aditya-portfolio-nine-xi.vercel.app`
+**Admin:** `https://aditya-portfolio-nine-xi.vercel.app/admin`
 **Credentials:** `adityajadhav0167@gmail.com` / `admin123`
+
+> **IMPORTANT:** There are two Vercel projects. The correct one is `aditya-portfolio` (NOT `portfolio`).
+> Deploy with: `vercel link --project aditya-portfolio` then `vercel --yes --prod`
 
 ---
 
@@ -54,6 +57,23 @@
 ### 5. Server Components
 - **Cannot have `onClick` handlers.** Action buttons with confirm dialogs must be `"use client"` components.
 - `ProjectActions.tsx` and `ProjectActionsMobile.tsx` are client components for this reason.
+
+### 6. Two Vercel Projects
+- `portfolio` — old/unused project, DO NOT deploy here
+- `aditya-portfolio` — the REAL project, all env vars set here
+- Always run `vercel link --project aditya-portfolio` before deploying
+- Deploy command: `vercel --yes --prod`
+
+### 7. Supabase Storage Bucket
+- The bucket is named **`media`** (NOT `portfolio` — that was a mistake)
+- Bucket config in `src/lib/supabase-storage.ts`: `process.env.SUPABASE_BUCKET || 'media'`
+- If bucket is missing: go to Supabase Dashboard → Storage → create `media` bucket (Public)
+
+### 8. Form Tab Persistence
+- All project editor forms (new + edit) use controlled inputs with `formValues` state
+- This ensures data persists when switching between tabs (Basic → Story → etc.)
+- `handleSubmit` reads from `formValues` state, not `new FormData(form)`
+- If adding new tabs, use the same controlled input pattern
 
 ---
 
@@ -182,16 +202,19 @@
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (Neon) |
 | `AUTH_SECRET` | Yes | Session signing secret |
-| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_URL` | Yes | Supabase project URL (`https://xxx.supabase.co`) |
 | `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `SUPABASE_BUCKET` | No | Supabase bucket name (defaults to `media`) |
 | `R2_ACCOUNT_ID` | No | Cloudflare R2 (fallback storage) |
 | `R2_ACCESS_KEY_ID` | No | R2 access key |
 | `R2_SECRET_ACCESS_KEY` | No | R2 secret key |
 | `R2_BUCKET_NAME` | No | R2 bucket name |
 | `R2_PUBLIC_URL` | No | R2 public URL |
 | `NEXT_PUBLIC_SITE_URL` | No | Site URL for SEO |
+
+> All vars must be set on the `aditya-portfolio` Vercel project (NOT `portfolio`).
 
 ---
 
@@ -225,17 +248,21 @@ Project (by slug, PUBLISHED only)
 ## DEPLOYMENT
 
 ```bash
+# Link to correct Vercel project (run once)
+vercel link --project aditya-portfolio
+
 # Build
 npm run build
 
-# Deploy
+# Deploy to production
 vercel --yes --prod
 
-# Env vars on Vercel
-vercel env add DATABASE_URL
-vercel env add AUTH_SECRET
-vercel env add SUPABASE_URL
-vercel env add SUPABASE_ANON_KEY
+# Env vars on Vercel (only on aditya-portfolio project)
+vercel env add DATABASE_URL production
+vercel env add AUTH_SECRET production
+vercel env add SUPABASE_URL production
+vercel env add SUPABASE_ANON_KEY production
+vercel env add NEXT_PUBLIC_SITE_URL production
 ```
 
 ---
@@ -291,11 +318,16 @@ All 48 sections of the master prompt are implemented:
 ### Upload and assign images
 1. Go to `/admin/media`
 2. Click "Upload Media"
-3. Select file (image/video/PDF)
+3. Select file (image/video/PDF) — uploads to Supabase `media` bucket
 4. After upload, click edit icon
 5. Set Alt Text, Caption, Role (COVER for thumbnails)
 6. Assign to a project from the Project dropdown
 7. Image appears in project gallery and/or list thumbnail
+
+### Fix "Using local file storage" warning
+- Check that `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set on the `aditya-portfolio` Vercel project
+- Check that the `media` bucket exists in Supabase Storage
+- Redeploy after adding env vars
 
 ### Fix a broken image on mobile
 - Ensure image src uses `/api/images?url=...` proxy, not direct Supabase URL

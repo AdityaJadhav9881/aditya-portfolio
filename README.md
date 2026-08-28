@@ -104,6 +104,7 @@ Priority: **Supabase Storage** > Cloudflare R2 > Local filesystem
 - Supported types: JPEG, PNG, GIF, WebP, SVG, MP4, WebM, PDF
 - Max file size: 20MB
 - Images are proxied through `/api/images` for cross-origin compatibility
+- **Supabase bucket name:** `media` (set `SUPABASE_BUCKET` env var if different)
 
 ## Deployment (Vercel)
 
@@ -117,13 +118,14 @@ vercel --yes --prod
 
 ### Vercel Environment Variables
 
-Set these in Vercel dashboard or via CLI:
+Set these in Vercel dashboard or via CLI (on the `aditya-portfolio` project):
 
 ```bash
-vercel env add DATABASE_URL
-vercel env add AUTH_SECRET
-vercel env add SUPABASE_URL
-vercel env add SUPABASE_ANON_KEY
+vercel env add DATABASE_URL production
+vercel env add AUTH_SECRET production
+vercel env add SUPABASE_URL production
+vercel env add SUPABASE_ANON_KEY production
+vercel env add NEXT_PUBLIC_SITE_URL production
 ```
 
 ## Project Structure
