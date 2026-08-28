@@ -8,7 +8,12 @@ export async function POST() {
 
   try {
     const existing = await prisma.project.findUnique({ where: { slug: "infinity-smart-switch" } });
-    if (existing) return NextResponse.json({ error: "Project already exists", id: existing.id });
+    if (existing) {
+      await prisma.projectSkill.deleteMany({ where: { projectId: existing.id } });
+      await prisma.projectRelatedProject.deleteMany({ where: { projectId: existing.id } });
+      await prisma.projectSection.deleteMany({ where: { projectId: existing.id } });
+      await prisma.project.delete({ where: { id: existing.id } });
+    }
 
     const project = await prisma.project.create({
       data: {
