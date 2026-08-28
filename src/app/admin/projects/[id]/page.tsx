@@ -63,47 +63,47 @@ const inputStyle = {
   color: "#e8e8ec",
 };
 
-function Input({ label, name, type = "text", placeholder, required, defaultValue }: {
-  label: string; name: string; type?: string; placeholder?: string; required?: boolean; defaultValue?: string;
+function Input({ label, name, type = "text", placeholder, required, value, onChange }: {
+  label: string; name: string; type?: string; placeholder?: string; required?: boolean; value: string; onChange: (v: string) => void;
 }) {
   return (
     <div>
       <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>{label}</label>
-      <input type={type} name={name} placeholder={placeholder} required={required} defaultValue={defaultValue} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
+      <input type={type} name={name} placeholder={placeholder} required={required} value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
     </div>
   );
 }
 
-function Textarea({ label, name, placeholder, defaultValue }: {
-  label: string; name: string; placeholder?: string; defaultValue?: string;
+function Textarea({ label, name, placeholder, value, onChange }: {
+  label: string; name: string; placeholder?: string; value: string; onChange: (v: string) => void;
 }) {
   return (
     <div>
       <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>{label}</label>
-      <textarea name={name} placeholder={placeholder} defaultValue={defaultValue} rows={5} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-y" style={inputStyle} />
+      <textarea name={name} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} rows={5} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-y" style={inputStyle} />
     </div>
   );
 }
 
-function Select({ label, name, options, defaultValue }: {
-  label: string; name: string; options: { value: string; label: string }[]; defaultValue?: string;
+function Select({ label, name, options, value, onChange }: {
+  label: string; name: string; options: { value: string; label: string }[]; value: string; onChange: (v: string) => void;
 }) {
   return (
     <div>
       <label className="block text-xs mb-1.5" style={{ color: "#8888a0" }}>{label}</label>
-      <select name={name} defaultValue={defaultValue} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
+      <select name={name} value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   );
 }
 
-function Checkbox({ label, name, defaultChecked }: {
-  label: string; name: string; defaultChecked?: boolean;
+function Checkbox({ label, name, checked, onChange }: {
+  label: string; name: string; checked: boolean; onChange: (v: boolean) => void;
 }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="w-4 h-4 rounded accent-[#00c8e0]" />
+      <input type="checkbox" name={name} checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-4 h-4 rounded accent-[#00c8e0]" />
       <span className="text-sm" style={{ color: "#e8e8ec" }}>{label}</span>
     </label>
   );
@@ -119,18 +119,15 @@ export default function EditProjectPage() {
   const [dropdownData, setDropdownData] = useState<DropdownData | null>(null);
   const [fetching, setFetching] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   useUnsavedChanges(hasChanges);
 
-  useEffect(() => {
-    if (!formRef.current) return;
-    const form = formRef.current;
-    function handleChange() { setHasChanges(true); }
-    form.addEventListener("input", handleChange);
-    form.addEventListener("change", handleChange);
-    return () => { form.removeEventListener("input", handleChange); form.removeEventListener("change", handleChange); };
-  }, [project]);
+  function handleFieldChange(name: string, value: string) {
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setHasChanges(true);
+  }
 
   useEffect(() => {
     fetch(`/api/projects/${id}`)
@@ -205,31 +202,31 @@ export default function EditProjectPage() {
       <form ref={formRef} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
         {activeTab === "basic" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Input label="Project Name" name="name" required defaultValue={project.name} />
-            <Input label="Slug" name="slug" defaultValue={project.slug} />
-            <Input label="One-liner" name="oneLine" defaultValue={project.oneLine || ""} />
+            <Input label="Project Name" name="name" required value={formValues.name ?? project.name} onChange={(v) => handleFieldChange("name", v)} />
+            <Input label="Slug" name="slug" value={formValues.slug ?? project.slug} onChange={(v) => handleFieldChange("slug", v)} />
+            <Input label="One-liner" name="oneLine" value={formValues.oneLine ?? (project.oneLine || "")} onChange={(v) => handleFieldChange("oneLine", v)} />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Year" name="year" type="number" defaultValue={project.year?.toString() || ""} />
-              <Input label="Category" name="category" defaultValue={project.category || ""} />
+              <Input label="Year" name="year" type="number" value={formValues.year ?? (project.year?.toString() || "")} onChange={(v) => handleFieldChange("year", v)} />
+              <Input label="Category" name="category" value={formValues.category ?? (project.category || "")} onChange={(v) => handleFieldChange("category", v)} />
             </div>
           </div>
         )}
 
         {activeTab === "story" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Textarea label="Description" name="description" defaultValue={project.description || ""} />
-            <Textarea label="Problem" name="problem" defaultValue={project.problem || ""} />
-            <Textarea label="Designed" name="designed" defaultValue={project.designed || ""} />
-            <Textarea label="How It Works" name="howItWorks" defaultValue={project.howItWorks || ""} />
-            <Textarea label="Engineering" name="engineering" defaultValue={project.engineering || ""} />
-            <Textarea label="Result" name="result" defaultValue={project.result || ""} />
-            <Textarea label="Learned" name="learned" defaultValue={project.learned || ""} />
+            <Textarea label="Description" name="description" value={formValues.description ?? (project.description || "")} onChange={(v) => handleFieldChange("description", v)} />
+            <Textarea label="Problem" name="problem" value={formValues.problem ?? (project.problem || "")} onChange={(v) => handleFieldChange("problem", v)} />
+            <Textarea label="Designed" name="designed" value={formValues.designed ?? (project.designed || "")} onChange={(v) => handleFieldChange("designed", v)} />
+            <Textarea label="How It Works" name="howItWorks" value={formValues.howItWorks ?? (project.howItWorks || "")} onChange={(v) => handleFieldChange("howItWorks", v)} />
+            <Textarea label="Engineering" name="engineering" value={formValues.engineering ?? (project.engineering || "")} onChange={(v) => handleFieldChange("engineering", v)} />
+            <Textarea label="Result" name="result" value={formValues.result ?? (project.result || "")} onChange={(v) => handleFieldChange("result", v)} />
+            <Textarea label="Learned" name="learned" value={formValues.learned ?? (project.learned || "")} onChange={(v) => handleFieldChange("learned", v)} />
           </div>
         )}
 
         {activeTab === "technical" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Input label="Technologies" name="technologies" defaultValue={project.technologies.join(", ")} />
+            <Input label="Technologies" name="technologies" value={formValues.technologies ?? project.technologies.join(", ")} onChange={(v) => handleFieldChange("technologies", v)} />
             <p className="text-xs" style={{ color: "#55556a" }}>Comma-separated list of technologies used</p>
           </div>
         )}
@@ -289,17 +286,17 @@ export default function EditProjectPage() {
 
         {activeTab === "settings" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Select label="Status" name="status" defaultValue={project.status} options={[{ value: "DRAFT", label: "Draft" }, { value: "PUBLISHED", label: "Published" }, { value: "ARCHIVED", label: "Archived" }]} />
-            <Input label="Display Order" name="displayOrder" type="number" defaultValue={project.displayOrder.toString()} />
-            <Checkbox label="Featured" name="featured" defaultChecked={project.featured} />
-            <Checkbox label="Show on Homepage" name="showOnHomepage" defaultChecked={project.showOnHomepage} />
+            <Select label="Status" name="status" value={formValues.status ?? project.status} onChange={(v) => handleFieldChange("status", v)} options={[{ value: "DRAFT", label: "Draft" }, { value: "PUBLISHED", label: "Published" }, { value: "ARCHIVED", label: "Archived" }]} />
+            <Input label="Display Order" name="displayOrder" type="number" value={formValues.displayOrder ?? project.displayOrder.toString()} onChange={(v) => handleFieldChange("displayOrder", v)} />
+            <Checkbox label="Featured" name="featured" checked={formValues.featured !== undefined ? formValues.featured === "true" : project.featured} onChange={(v) => handleFieldChange("featured", v.toString())} />
+            <Checkbox label="Show on Homepage" name="showOnHomepage" checked={formValues.showOnHomepage !== undefined ? formValues.showOnHomepage === "true" : project.showOnHomepage} onChange={(v) => handleFieldChange("showOnHomepage", v.toString())} />
           </div>
         )}
 
         {activeTab === "seo" && (
           <div className="rounded-xl p-5 space-y-4" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Input label="SEO Title" name="seoTitle" defaultValue={project.seoTitle || ""} />
-            <Textarea label="SEO Description" name="seoDescription" defaultValue={project.seoDescription || ""} />
+            <Input label="SEO Title" name="seoTitle" value={formValues.seoTitle ?? (project.seoTitle || "")} onChange={(v) => handleFieldChange("seoTitle", v)} />
+            <Textarea label="SEO Description" name="seoDescription" value={formValues.seoDescription ?? (project.seoDescription || "")} onChange={(v) => handleFieldChange("seoDescription", v)} />
           </div>
         )}
       </form>
