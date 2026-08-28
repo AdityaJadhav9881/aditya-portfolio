@@ -14,7 +14,7 @@ function getSupabase(): SupabaseClient {
   return _supabase
 }
 
-const BUCKET_NAME = process.env.SUPABASE_BUCKET || 'portfolio'
+const BUCKET_NAME = process.env.SUPABASE_BUCKET || 'media'
 
 export async function uploadToSupabase(file: File, folder: string = 'uploads'): Promise<{ url: string; key: string }> {
   const ext = file.name.split('.').pop()
