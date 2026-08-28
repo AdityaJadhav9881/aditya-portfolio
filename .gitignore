@@ -45,3 +45,5 @@ public/uploads/*
 next-env.d.ts
 
 .vercel
+
+.env*
