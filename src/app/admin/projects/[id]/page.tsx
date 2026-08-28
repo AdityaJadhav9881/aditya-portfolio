@@ -151,9 +151,10 @@ export default function EditProjectPage() {
 
   async function handleSubmit(status?: string) {
     setLoading(true);
-    const form = formRef.current;
-    if (!form) return;
-    const formData = new FormData(form);
+    const formData = new FormData();
+    for (const [key, val] of Object.entries(formValues)) {
+      formData.set(key, val);
+    }
     if (status) formData.set("status", status);
     try {
       await updateProject(id, formData);
