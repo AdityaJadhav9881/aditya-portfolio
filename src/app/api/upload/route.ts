@@ -12,6 +12,8 @@ const ALLOWED_TYPES = [
   "video/mp4",
   "video/webm",
   "application/pdf",
+  "application/vnd.android.package-archive",
+  "application/x-android-package-archive",
 ];
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
@@ -33,9 +35,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  const isApkMime = ALLOWED_TYPES.includes(file.type);
+  const isApkExt = file.name.toLowerCase().endsWith(".apk");
+  if (!isApkMime && !(isApkExt && (file.type === "" || file.type === "application/octet-stream"))) {
     return NextResponse.json(
-      { error: `File type not allowed: ${file.type}. Allowed: images, videos, PDFs.` },
+      { error: `File type not allowed: ${file.type || file.name}. Allowed: images, videos, PDFs, APKs.` },
       { status: 400 }
     );
   }

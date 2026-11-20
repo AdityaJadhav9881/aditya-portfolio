@@ -29,8 +29,12 @@ export async function GET(request: NextRequest) {
 
     if (download) {
       const urlObj = new URL(url);
-      const filename = urlObj.pathname.split("/").pop() || "download";
-      headers["Content-Disposition"] = `attachment; filename="${filename}"`;
+      const filename =
+        request.nextUrl.searchParams.get("filename") ||
+        urlObj.pathname.split("/").pop() ||
+        "download";
+      const safe = filename.replace(/["\\]/g, "_");
+      headers["Content-Disposition"] = `attachment; filename="${safe}"`;
       headers["Cache-Control"] = "no-store";
     }
 

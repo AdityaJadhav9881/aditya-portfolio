@@ -295,6 +295,10 @@ export default function EditProjectPage() {
                       <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: "#111119" }}>
                         <span className="text-[10px]" style={{ color: "#ef4444" }}>PDF</span>
                       </div>
+                    ) : m.mimeType === "application/vnd.android.package-archive" || m.mimeType === "application/x-android-package-archive" ? (
+                      <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: "#111119" }}>
+                        <span className="text-[10px]" style={{ color: "#3ddc84" }}>APK</span>
+                      </div>
                     ) : (
                       <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: "#111119" }}>
                         <span className="text-[10px]" style={{ color: "#55556a" }}>FILE</span>
@@ -303,6 +307,13 @@ export default function EditProjectPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs truncate" style={{ color: "#e8e8ec" }}>{m.originalName}</p>
                       <p className="text-[10px]" style={{ color: "#55556a" }}>{m.role} · {m.alt || "no alt"}</p>
+                      <a
+                        href={`/api/images?url=${encodeURIComponent(m.url)}&download=1&filename=${encodeURIComponent(m.originalName || "download")}`}
+                        className="text-[10px] inline-block mt-0.5"
+                        style={{ color: "#00c8e0" }}
+                      >
+                        Download
+                      </a>
                     </div>
                   </div>
                 ))}

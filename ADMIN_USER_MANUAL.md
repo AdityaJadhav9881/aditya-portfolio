@@ -1,6 +1,7 @@
 # INFINITY DESIGN — ADMIN USER MANUAL
 
 > Complete guide to every admin feature, what it controls, and where it appears on the public website.
+> Last updated: 2026-11-20.
 
 ---
 
@@ -17,6 +18,7 @@
 9. [Site Settings](#9-site-settings)
 10. [Homepage Section Visibility](#10-homepage-section-visibility)
 11. [Quick Reference — Public Page Map](#11-public-page-map)
+12. [Behavior Notes (2026-11 fixes)](#12-behavior-notes)
 
 ---
 
@@ -48,6 +50,11 @@
 | Add Achievement | `/admin/achievements` | Create new achievement |
 | Upload Media | `/admin/media` | Upload images/videos/PDFs |
 
+### Admin chrome
+
+- Public site navigation and footer are **hidden** on all `/admin*` routes (`SiteChrome`).
+- Admin uses its own sidebar layout (Dashboard, Projects, Skills, Journey, Research, Achievements, Media, Settings).
+
 ---
 
 ## 2. PROJECTS
@@ -74,7 +81,7 @@ Table of all projects with columns: Name, Year, Category, Status, Featured, Home
 | **Feature/Unfeature** | Toggles `Project.featured` | Featured projects show on homepage featured section |
 | **Show Home/Hide Home** | Toggles `Project.showOnHomepage` | Controls if project appears in homepage "Selected Projects" |
 | **Duplicate** | Creates copy with all sections/relationships | New draft project, hidden from homepage |
-| **Delete** | Permanently removes project | Project page returns 404 |
+| **Delete** | Permanently removes project (confirm dialog) | Project page returns 404 |
 | **Edit** | Opens project editor | N/A (admin only) |
 
 ---
@@ -82,6 +89,14 @@ Table of all projects with columns: Name, Year, Category, Status, Featured, Home
 ## 3. PROJECT EDITOR
 
 **Route:** `/admin/projects/[id]` (edit) or `/admin/projects/new` (create)
+
+### Save behavior (important)
+
+- Tabs share controlled `formValues` state so data persists when switching tabs.
+- **Save sends the full project**, not only fields you touched — untouched fields are never wiped.
+- Errors (validation, server) appear in a red banner under the header.
+- After a successful save you are redirected back to the project list.
+- Checkbox values are stored as `"true"` / `"false"` and parsed server-side with `isChecked`.
 
 ### Tab 1: BASIC
 
@@ -125,13 +140,13 @@ Manages rich content blocks via `SectionManager` component.
 | FEATURES | Key Features |
 | HARDWARE | Hardware |
 | SOFTWARE | Software |
-| TECHNICAL | Technical Details |
+| TECHNICAL | Technical |
 | HOW_IT_WORKS | How It Works |
 | TESTING | Testing |
 | CHALLENGES | Challenges |
 | LESSONS | Lessons |
 | RESEARCH | Research |
-| FUTURE | Future Improvements |
+| FUTURE | Future |
 | GALLERY | Gallery |
 
 **Per Section Fields:**
@@ -142,13 +157,13 @@ Manages rich content blocks via `SectionManager` component.
 | Title | `ProjectSection.title` | Custom heading (optional, type default used if empty) |
 | Content | `ProjectSection.content` | Main text content |
 | Display Order | `ProjectSection.displayOrder` | Controls sort order |
-| Visible | `ProjectSection.visible` | Toggle on/off |
+| Visible | `ProjectSection.visible` | Toggle on/off — unchecked means hidden (server uses `isChecked`) |
 
 **Note:** Only sections with `visible = true` AND non-empty content render on the public page.
 
 ### Tab 5: MEDIA
 
-Shows all media files assigned to this project. To upload/assign media, go to `/admin/media`.
+Shows all media files assigned to this project (images via proxy; PDF badge). To upload/assign media, go to `/admin/media`.
 
 ### Tab 6: LINKS (Relationships)
 
@@ -157,8 +172,8 @@ Four relationship panels:
 | Relationship | Database Table | Public Display |
 |-------------|---------------|----------------|
 | **Skills** | `ProjectSkill` | "Related Skills" section on project detail page |
-| **Research** | `ResearchProject` | "Related Research" section on project detail page |
-| **Achievements** | `AchievementProject` | Shows in achievement's related projects |
+| **Research** | `ResearchProject` | Research related to the project |
+| **Achievements** | `AchievementProject` | Achievement ↔ project links |
 | **Related Projects** | `ProjectRelatedProject` | "Related Projects" links on project detail page |
 
 ### Tab 7: SETTINGS
@@ -167,7 +182,7 @@ Four relationship panels:
 |-------|---------------|---------------|
 | Status | `Project.status` | DRAFT = hidden from public, PUBLISHED = visible, ARCHIVED = hidden from listings |
 | Display Order | `Project.displayOrder` | Controls sort order in project list and homepage |
-| Featured | `Project.featured` | Featured projects highlighted (homepage featured section) |
+| Featured | `Project.featured` | Featured projects highlighted |
 | Show on Homepage | `Project.showOnHomepage` | If checked, appears in homepage "Selected Projects" (max 5) |
 
 ### Tab 8: SEO
@@ -180,8 +195,10 @@ Four relationship panels:
 **Auto-generated if empty:**
 - Title: `{Project.name} | Aditya Jadhav`
 - Description: `{Project.oneLine}`
-- OG Image: `{siteUrl}/api/og?title={project.name}`
+- OG Image: `{siteUrl}/api/og?title={project.name}` (dynamic route exists)
 - Canonical URL: `{siteUrl}/projects/{slug}`
+
+Draft projects are **not** returned by the public project API without an admin session.
 
 ---
 
@@ -198,9 +215,11 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | Field | Database Field | Public Display |
 |-------|---------------|----------------|
 | Name | `SkillGroup.name` | Group heading on `/skills` page |
-| Slug | `SkillGroup.slug` | Anchor ID: `/skills#{slug}` |
+| Slug | `SkillGroup.slug` | Internal identifier |
 | Description | `SkillGroup.description` | Group description text |
 | Display Order | `SkillGroup.displayOrder` | Sort order on `/skills` page |
+
+**Anchors:** Homepage SkillsPreview links to `/skills#{group.id}` (database id, not slug). The `/skills` page wraps each group card with `id={group.id}` for deep links.
 
 ### Skills
 
@@ -211,10 +230,16 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | Skill Group | `Skill.skillGroupId` | Determines which group the skill belongs to |
 | Display Order | `Skill.displayOrder` | Sort order within group |
 
+### Edit / delete behavior
+
+- **Edit** prefills the form with the current skill or group values (name, slug, order, group).
+- **Save errors** show in a banner; forms stay open on failure.
+- **Delete** asks for confirmation (skill group delete ungroups skills).
+
 **Public Pages:**
-- `/skills` — Shows all skill groups with their skills
+- `/skills` — Shows all skill groups with their skills (+ `#id` anchors)
 - `/skills/[skillId]` — Individual skill page showing related projects
-- Homepage `SkillsPreview` — Shows first 3 skills per group + overflow count
+- Homepage `SkillsPreview` — Skill groups linking to `/skills#id`
 
 ---
 
@@ -227,11 +252,22 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | Field | Database Field | Public Display |
 |-------|---------------|----------------|
 | Title | `ResearchEntry.title` | Entry heading on `/research` page |
-| Slug | `ResearchEntry.slug` | Anchor ID: `/research#{slug}` |
+| Slug | `ResearchEntry.slug` | URL/anchor identifier |
 | Description | `ResearchEntry.description` | Entry description text |
-| Links | `ResearchEntry.links` (JSON) | Array of `{label, url}` — rendered as clickable links |
+| Links | `ResearchEntry.links` (JSON) | Normalized to `[{ "label": "...", "url": "https://..." }]` |
 | Display Order | `ResearchEntry.displayOrder` | Sort order on `/research` page |
 | Visible | `ResearchEntry.visible` | Hidden entries don't appear on `/research` or homepage |
+
+### Links input
+
+- Prefer a JSON array: `[{"label": "Paper", "url": "https://..."}]`
+- A single object `{"label":"...","url":"..."}` or a bare `https://...` URL is also accepted
+- Server normalizes everything to `[{label, url}]` before saving (`parseResearchLinks` + `Prisma.DbNull` when empty)
+
+### Edit / delete behavior
+
+- Edit prefills title, slug, description, links (pretty-printed JSON), order, visible
+- Errors surface in a banner; delete asks for confirmation
 
 **Public Pages:**
 - `/research` — Lists all visible research entries
@@ -254,7 +290,13 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | Display Order | `Achievement.displayOrder` | Sort order on `/achievements` page |
 | Visible | `Achievement.visible` | Hidden entries don't appear publicly |
 
-**Public Page:** `/achievements` — Lists all visible achievements
+### Edit / delete behavior
+
+- Edit prefills all fields including `visible`
+- Delete confirms; errors show in banner
+
+**Public Page:** `/achievements` — Lists all visible achievements  
+**Nav/Footer:** Achievements is linked in both public Navigation and Footer.
 
 ---
 
@@ -269,13 +311,18 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | Year | `JourneyEntry.year` | Timeline year label |
 | Title | `JourneyEntry.title` | Entry heading |
 | Description | `JourneyEntry.description` | Entry text |
-| Type | `JourneyEntry.type` | MILESTONE = default dot, PROJECT = project dot, ONGOING = accent-colored dot |
+| Type | `JourneyEntry.type` | MILESTONE / PROJECT / ONGOING color dots |
 | Display Order | `JourneyEntry.displayOrder` | Sort order on `/journey` page |
 | Visible | `JourneyEntry.visible` | Hidden entries don't appear publicly |
 
+### Edit / delete behavior
+
+- Edit prefills year, type, title, description, order, visible
+- Delete confirms; errors show in banner
+
 **Public Pages:**
 - `/journey` — Full timeline of all visible entries
-- Homepage `JourneyPreview` — Shows last 4 visible entries as mini timeline
+- Homepage `JourneyPreview` — Mini timeline of visible entries
 
 ---
 
@@ -287,12 +334,19 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 
 | Feature | How | What It Does |
 |---------|-----|-------------|
-| **Upload** | Click "Upload Media" button, select file | Uploads to Supabase Storage (or R2/local fallback) |
+| **Upload** | Click **+ Upload Files**, select one or more files | Multi-file upload (images, video, PDF, **APK**); failures listed in error banner |
 | **Search** | Type in search box | Filters by filename or alt text |
 | **Role Filter** | Dropdown (All/Cover/Hero/Gallery/Diagram/Hardware/Testing/Other) | Filters by media role |
-| **Type Filter** | Buttons (All/Images/Videos/PDFs) | Filters by MIME type |
-| **Edit** | Click edit icon on any media item | Opens inline edit modal |
-| **Delete** | Click delete icon | Removes from storage + database |
+| **Type Filter** | Buttons (All/Images/Videos/PDFs/**APKs**) | Filters by MIME type |
+| **Edit** | Click Edit on any media item | Opens modal (project, role, alt, caption) |
+| **Delete** | Click Delete (confirm) | Removes from storage + database |
+
+### Previews
+
+- Images: proxied thumbnail via `mediaSrc()` → `/api/images?url=...`
+- PDF: red PDF badge (not rendered as `<img>`)
+- APK: green APK badge (Android package icon)
+- Other files: generic FILE badge
 
 ### Media Roles
 
@@ -317,15 +371,28 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 
 ### Upload Rules
 
-- **Accepted types:** JPEG, PNG, GIF, WebP, SVG, MP4, WebM, PDF
-- **Max size:** 20MB
+- **Accepted types:** JPEG, PNG, GIF, WebP, SVG, MP4, WebM, PDF, APK (`application/vnd.android.package-archive`)
+- **Max size:** 20MB per file
 - **Storage:** Supabase Storage (primary) → Cloudflare R2 → Local filesystem
+- **Auth:** Session required (`/api/upload` is behind proxy + session check)
+
+### Public gallery rendering
+
+| MIME | Public project page |
+|------|---------------------|
+| `image/*` | `<img>` through `/api/images` proxy |
+| `video/*` | `<video controls>` with proxied source |
+| `application/pdf` | Filename card + **Download PDF** button (`?download=1`) |
+| APK (`application/vnd.android.package-archive`) | Green APK card + **Download APK** button (`?download=1`) |
+| other | Download link |
 
 ---
 
 ## 9. SITE SETTINGS
 
 **Route:** `/admin/settings`
+
+`getSiteSettings` requires an admin session (redirects to login if not signed in).
 
 ### Personal Settings
 
@@ -351,10 +418,12 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 
 | Field | Database Key | Public Display |
 |-------|-------------|----------------|
-| Site Title | `SiteSetting.siteTitle` | `<title>` tag template |
-| Site Description | `SiteSetting.siteDescription` | Meta description |
-| Default OG Image URL | `SiteSetting.ogImage` | Open Graph image fallback |
+| Site Title | `SiteSetting.siteTitle` | Root layout `<title>` default (via `generateMetadata`) |
+| Site Description | `SiteSetting.siteDescription` | Root meta description |
+| Default OG Image URL | `SiteSetting.ogImage` | OG image; fallback `/api/og?title=...` |
 | SEO Keywords | `SiteSetting.seoKeywords` | Meta keywords |
+
+Values are normalized with `settingString()` (handles string/number/JSON shapes).
 
 ---
 
@@ -394,13 +463,13 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 |---------|-------------|---------------|
 | Hero | Hardcoded | Toggle via Settings |
 | Identity | `SiteSetting.bio` | Edit bio in Settings + toggle |
-| Selected Projects | `Project` (top 5, PUBLISHED, showOnHomepage) | Set `showOnHomepage` per project + toggle |
+| Selected Projects | `Project` (PUBLISHED, showOnHomepage) | Set `showOnHomepage` per project + toggle |
 | Philosophy | Hardcoded | Toggle via Settings |
-| Skills Preview | `SkillGroup` → `Skill` | Toggle via Settings |
-| Journey Preview | `JourneyEntry` (last 4) | Toggle via Settings |
+| Skills Preview | `SkillGroup` → `Skill` | Toggle via Settings; links `/skills#id` |
+| Journey Preview | `JourneyEntry` | Toggle via Settings |
 | Research Preview | `ResearchEntry` | Toggle via Settings |
 | Future | Hardcoded | Toggle via Settings |
-| Contact | `SiteSetting.email`, `SiteSetting.linkedin`, `SiteSetting.github` | Edit in Settings + toggle |
+| Contact | `SiteSetting.email`, `linkedin`, `github` | Edit in Settings + toggle |
 | Continuation | Hardcoded | Toggle via Settings |
 
 ### Projects List (`/projects`)
@@ -411,69 +480,79 @@ Two levels: **Skill Groups** (categories) and **Skills** (individual items).
 | One-liner | `Project.oneLine` | Edit in project editor |
 | Year | `Project.year` | Edit in project editor |
 | Category | `Project.category` | Edit in project editor |
-| Cover thumbnail | `Media` (role=COVER, assigned to project) | Upload media, set role=COVER, assign to project |
-| Sort order | `Project.displayOrder` | Edit in project editor → Settings tab |
+| Cover thumbnail | `Media` (role=COVER) via `/api/images` | Upload, role=COVER, assign project |
+| Sort order | `Project.displayOrder` | Settings tab |
 
 ### Project Detail (`/projects/[slug]`)
 
 | Element | Data Source | Admin Control |
 |---------|-------------|---------------|
-| Title | `Project.name` | Edit in project editor |
-| Subtitle | `Project.oneLine` | Edit in project editor |
-| Year + Category | `Project.year`, `Project.category` | Edit in project editor |
-| Technology tags | `Project.technologies[]` | Edit in project editor → Technical tab |
-| Story sections | `Project.description/problem/designed/howItWorks/engineering/result/learned` | Edit in project editor → Story tab |
-| Rich content sections | `ProjectSection` records | Add/edit in Sections tab |
-| Gallery images | `Media` (assigned to project, visible=true) | Upload media, assign to project |
-| Related Skills | `ProjectSkill` → `Skill` | Toggle in Links tab |
-| Related Research | `ResearchProject` → `ResearchEntry` | Toggle in Links tab |
-| Related Projects | `ProjectRelatedProject` → `Project` | Toggle in Links tab |
-| SEO metadata | `Project.seoTitle`, `Project.seoDescription` | Edit in SEO tab |
+| Title / subtitle / year / category / tech tags | Project fields | Project editor |
+| Story sections | Project story fields | Story tab |
+| Rich content sections | `ProjectSection` + `SECTION_LABELS` | Sections tab |
+| Gallery | `Media` assigned + visible — image/video/PDF | Media library + assign |
+| Related Skills / Research / Achievements / Projects | Relationship tables | Links tab |
+| SEO metadata | `seoTitle`, `seoDescription` | SEO tab |
+| OG image | `ogImage` or `/api/og` | SEO / settings |
 
 ### Skills (`/skills`)
 
 | Element | Data Source | Admin Control |
 |---------|-------------|---------------|
-| Skill groups | `SkillGroup` | Create/edit/delete in admin |
-| Skills per group | `Skill` | Create/edit/delete in admin |
-| Sort order | `displayOrder` fields | Edit in admin |
+| Skill groups + `#id` anchors | `SkillGroup` | Admin CRUD |
+| Skills per group | `Skill` | Admin CRUD |
+| Sort order | `displayOrder` | Admin |
 
 ### Research (`/research`)
 
 | Element | Data Source | Admin Control |
 |---------|-------------|---------------|
-| Research entries | `ResearchEntry` (visible=true) | Create/edit/delete in admin |
-| Links | `ResearchEntry.links` (JSON) | Edit in admin |
-| Sort order | `ResearchEntry.displayOrder` | Edit in admin |
+| Entries (visible) | `ResearchEntry` | Admin CRUD |
+| Links `[{label,url}]` | `ResearchEntry.links` | Admin JSON input |
 
 ### Journey (`/journey`)
 
 | Element | Data Source | Admin Control |
 |---------|-------------|---------------|
-| Timeline entries | `JourneyEntry` (visible=true) | Create/edit/delete in admin |
-| Entry types | `JourneyEntry.type` | Edit in admin (MILESTONE/PROJECT/ONGOING) |
-| Sort order | `JourneyEntry.displayOrder` | Edit in admin |
+| Timeline (visible) | `JourneyEntry` | Admin CRUD |
 
 ### Achievements (`/achievements`)
 
 | Element | Data Source | Admin Control |
 |---------|-------------|---------------|
-| Achievement entries | `Achievement` (visible=true) | Create/edit/delete in admin |
-| Year, category | `Achievement.year`, `Achievement.category` | Edit in admin |
-| Sort order | `Achievement.displayOrder` | Edit in admin |
+| Entries (visible) | `Achievement` | Admin CRUD |
 
-### Footer (Every Page)
+### Navigation (every public page)
 
-| Element | Data Source | Admin Control |
-|---------|-------------|---------------|
-| GitHub link | `SiteSetting.github` | Edit in Settings |
-| LinkedIn link | `SiteSetting.linkedin` | Edit in Settings |
-| Copyright year | `new Date().getFullYear()` | Automatic |
+Hardcoded links: About, Projects, Skills, Journey, Research, **Achievements**, Contact  
+**Hidden on `/admin*`.**
 
-### Navigation (Every Page)
+### Footer (every public page)
 
-All links are hardcoded — not database-driven:
-- About, Projects, Skills, Journey, Research, Contact
+Same link set as nav (includes Achievements) + GitHub/LinkedIn from SiteSetting  
+**Hidden on `/admin*`.**
+
+---
+
+## 12. BEHAVIOR NOTES (2026-11 fixes)
+
+| Behavior | Detail |
+|----------|--------|
+| Visible checkbox | Unchecked = hidden. Server uses `isChecked` — never `!== "off"` |
+| Featured / Show on Homepage | Accepts `"on"`, `"true"`, or `"1"` from the form |
+| Edit project save | Merges full project + edited fields; no silent data loss |
+| Manager edit | Prefills existing values for skills, journey, research, achievements |
+| Errors | Red banner under page header; form stays open on failure |
+| Deletes | Confirm dialog for projects, skills, journey, research, achievements, media |
+| Media upload | Multi-select; non-OK responses counted and shown |
+| PDF upload | Allowed (alongside images and video) |
+| PDF public display | Card + Download PDF (not broken `<img>`) |
+| APK upload / display | Allowed; green APK badge in admin; public card + **Download APK** |
+| Image proxy | Host allowlist only (Supabase / R2); `?download=1` forces attachment |
+| Draft project API | 404 without admin session |
+| Login | 5 failed attempts per IP per 15 minutes → 429 |
+| Admin chrome | No public nav/footer under `/admin` |
+| Root SEO | Title/description/OG from SiteSettings when set |
 
 ---
 
@@ -481,10 +560,17 @@ All links are hardcoded — not database-driven:
 
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
-| Project not on homepage | `showOnHomepage` is false or status is not PUBLISHED | Edit project → Settings tab → check "Show on Homepage", set status to PUBLISHED |
-| Section not showing on project page | `visible` is false or content is empty | Edit project → Sections tab → toggle visibility, ensure content exists |
-| Image not in gallery | Media not assigned to project or `visible` is false | Go to Media → edit media → assign to project, ensure visible |
-| Skill not on project | Skill not linked | Edit project → Links tab → check the skill |
-| Homepage section missing | Section toggle is OFF | Settings → Homepage Sections → enable the section |
-| Research not on homepage | `visible` is false | Edit research entry → check "Visible" |
-| Build fails with `supabaseUrl is required` | Env vars missing during build | Ensure `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in Vercel |
+| Project not on homepage | `showOnHomepage` false or not PUBLISHED | Settings tab → check homepage + status PUBLISHED |
+| Section not showing | `visible` false or empty content | Sections tab → toggle + content |
+| Image not in gallery | Not assigned or not visible | Media → edit → assign project |
+| PDF looks broken as image | Old code path | Current gallery renders PDF cards + download |
+| APK not accepted | Old MIME list | Latest allows `application/vnd.android.package-archive` |
+| Skill not on project | Not linked | Links tab → check skill |
+| Homepage section missing | Toggle OFF | Settings → Homepage Sections |
+| Research not on homepage | `visible` false | Edit research → Visible |
+| Save seems to wipe fields | Partial FormData bug (fixed) | Ensure on latest master (`7ed863f+`); full-state merge |
+| Always-visible section | Old `!== "off"` bug (fixed) | Latest code uses `isChecked` |
+| Build fails `supabaseUrl is required` | Missing env at build | Set SUPABASE_* on Vercel |
+| 429 on login | Rate limit | Wait 15 min or restart local dev |
+| 403 on image proxy | Host not allowlisted | Use Supabase/R2 URLs only |
+| Vercel CLI "no credentials" | Not logged in | `vercel login` or push to GitHub for auto-deploy |

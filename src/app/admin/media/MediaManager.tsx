@@ -30,7 +30,16 @@ const MIME_FILTERS = [
   { label: "Images", value: "image/" },
   { label: "Videos", value: "video/" },
   { label: "PDFs", value: "application/pdf" },
+  { label: "APKs", value: "application/vnd.android.package-archive" },
 ];
+
+function isApk(mimeType: string): boolean {
+  return (
+    mimeType === "application/vnd.android.package-archive" ||
+    mimeType === "application/x-android-package-archive" ||
+    mimeType.endsWith("+android-package-archive")
+  );
+}
 
 export default function MediaManager({ media, projects }: { media: MediaItem[]; projects: Project[] }) {
   const [uploading, setUploading] = useState(false);
@@ -117,7 +126,7 @@ export default function MediaManager({ media, projects }: { media: MediaItem[]; 
         <h1 className="text-2xl font-semibold" style={{ color: "#e8e8ec" }}>Media</h1>
         <label className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer" style={{ background: "#00c8e0", color: "#0a0a0f" }}>
           {uploading ? "Uploading..." : "+ Upload Files"}
-          <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} multiple accept="image/*,video/*,application/pdf" />
+          <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} multiple accept="image/*,video/*,application/pdf,.apk,application/vnd.android.package-archive,application/octet-stream" />
         </label>
       </div>
 
@@ -170,6 +179,15 @@ export default function MediaManager({ media, projects }: { media: MediaItem[]; 
                   <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
                 </svg>
                 <span className="text-[10px]" style={{ color: "#55556a" }}>PDF</span>
+              </div>
+            ) : isApk(item.mimeType) ? (
+              <div className="aspect-square bg-[#0c0c14] flex flex-col items-center justify-center gap-2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3ddc84" strokeWidth="1.5">
+                  <rect x="5" y="2" width="14" height="20" rx="2" />
+                  <path d="M9 18h6" />
+                  <path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01" strokeLinecap="round" />
+                </svg>
+                <span className="text-[10px]" style={{ color: "#3ddc84" }}>APK</span>
               </div>
             ) : (
               <div className="aspect-square bg-[#0c0c14] flex flex-col items-center justify-center gap-2">

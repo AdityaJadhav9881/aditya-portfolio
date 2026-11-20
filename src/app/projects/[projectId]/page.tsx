@@ -184,9 +184,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               <div className="space-y-6">
                 {project.media.map((item: any) => {
                   const proxied = `/api/images?url=${encodeURIComponent(item.url)}`;
-                  const downloadUrl = `${proxied}&download=1`;
+                  const fileParam = item.originalName ? `&filename=${encodeURIComponent(item.originalName)}` : "";
+                  const downloadUrl = `${proxied}&download=1${fileParam}`;
                   const isPdf = item.mimeType === "application/pdf";
                   const isVideo = item.mimeType.startsWith("video/");
+                  const isApk =
+                    item.mimeType === "application/vnd.android.package-archive" ||
+                    item.mimeType === "application/x-android-package-archive" ||
+                    (typeof item.mimeType === "string" && item.mimeType.endsWith("+android-package-archive"));
                   return (
                     <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                       {item.mimeType.startsWith("image/") ? (
@@ -220,6 +225,26 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                             Download PDF
                           </a>
                         </div>
+                      ) : isApk ? (
+                        <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4" style={{ background: "#111119" }}>
+                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3ddc84" strokeWidth="1.5" className="shrink-0">
+                            <rect x="5" y="2" width="14" height="20" rx="2" />
+                            <path d="M9 18h6" />
+                            <path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01" strokeLinecap="round" />
+                          </svg>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-[var(--color-text-primary)] truncate">{item.originalName}</p>
+                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Android package (APK)</p>
+                          </div>
+                          <a
+                            href={downloadUrl}
+                            download={item.originalName || undefined}
+                            className="px-4 py-2 rounded-lg text-xs font-medium tracking-wide uppercase shrink-0"
+                            style={{ background: "#3ddc84", color: "#0a0a0f" }}
+                          >
+                            Download APK
+                          </a>
+                        </div>
                       ) : (
                         <div className="p-6 flex items-center gap-4" style={{ background: "#111119" }}>
                           <div className="flex-1 min-w-0">
@@ -228,6 +253,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                           </div>
                           <a
                             href={downloadUrl}
+                            download={item.originalName || undefined}
                             className="px-4 py-2 rounded-lg text-xs font-medium tracking-wide uppercase shrink-0 border border-[var(--color-border)]"
                             style={{ color: "#8888a0" }}
                           >
