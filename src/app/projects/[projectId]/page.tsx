@@ -6,6 +6,21 @@ import { FadeIn } from "@/components/FadeIn";
 
 export const dynamic = "force-dynamic";
 
+const SECTION_LABELS: Record<string, string> = {
+  STORY: "Story",
+  FEATURES: "Key Features",
+  HARDWARE: "Hardware",
+  SOFTWARE: "Software",
+  TECHNICAL: "Technical",
+  HOW_IT_WORKS: "How It Works",
+  TESTING: "Testing",
+  CHALLENGES: "Challenges",
+  LESSONS: "Lessons",
+  RESEARCH: "Research",
+  FUTURE: "Future",
+  GALLERY: "Gallery",
+};
+
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;
 }
@@ -125,27 +140,6 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             ) : null
           )}
 
-          <FadeIn>
-            <div className="mb-16">
-              <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
-                Key Features
-              </h2>
-              <ul className="space-y-3">
-                {project.sections
-                  .filter((s: any) => s.sectionType === "FEATURES")
-                  .map((feature: any) => (
-                    <li
-                      key={feature.id}
-                      className="flex items-start gap-3 text-base text-[var(--color-text-secondary)]"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] mt-2 flex-shrink-0" />
-                      {feature.title || feature.content}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          </FadeIn>
-
           {[
             { label: "Engineering", content: project.engineering },
             { label: "Result", content: project.result },
@@ -164,6 +158,21 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               </FadeIn>
             ) : null
           )}
+
+          {project.sections.map((section) => (
+            <FadeIn key={section.id}>
+              <div className="mb-16">
+                <h2 className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] font-medium mb-4">
+                  {section.title || SECTION_LABELS[section.sectionType] || section.sectionType}
+                </h2>
+                {section.content && (
+                  <p className="text-base md:text-lg text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-line">
+                    {section.content}
+                  </p>
+                )}
+              </div>
+            </FadeIn>
+          ))}
         </div>
 
         {project.media.length > 0 && (
