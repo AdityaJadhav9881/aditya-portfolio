@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
+import { isChecked, parseYear, parseOrder, parseTechnologies } from "@/lib/forms";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -26,6 +27,15 @@ function validateYear(year: number | null): boolean {
   return year >= 2000 && year <= 2100;
 }
 
+function isRedirectError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "digest" in error &&
+    typeof (error as { digest?: unknown }).digest === "string" &&
+    (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
 export async function createProject(formData: FormData) {
   await requireAdmin();
 
@@ -40,16 +50,16 @@ export async function createProject(formData: FormData) {
       throw new Error("Invalid slug. Use only lowercase letters, numbers, and hyphens.");
     }
 
-    const year = formData.get("year") ? parseInt(formData.get("year") as string) : null;
+    const year = parseYear(formData.get("year"));
     if (!validateYear(year)) {
       throw new Error("Year must be between 2000 and 2100");
     }
     const oneLine = formData.get("oneLine") as string | null;
     const category = formData.get("category") as string | null;
     const status = (formData.get("status") as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT";
-    const featured = formData.get("featured") === "on";
-    const showOnHomepage = formData.get("showOnHomepage") === "on";
-    const displayOrder = formData.get("displayOrder") ? parseInt(formData.get("displayOrder") as string) : 0;
+    const featured = isChecked(formData.get("featured"));
+    const showOnHomepage = isChecked(formData.get("showOnHomepage"));
+    const displayOrder = parseOrder(formData.get("displayOrder"));
 
     const description = formData.get("description") as string | null;
     const problem = formData.get("problem") as string | null;
@@ -59,10 +69,7 @@ export async function createProject(formData: FormData) {
     const result = formData.get("result") as string | null;
     const learned = formData.get("learned") as string | null;
 
-    const technologiesRaw = formData.get("technologies") as string | null;
-    const technologies = technologiesRaw
-      ? technologiesRaw.split(",").map((t) => t.trim()).filter(Boolean)
-      : [];
+    const technologies = parseTechnologies(formData.get("technologies"));
 
     const seoTitle = formData.get("seoTitle") as string | null;
     const seoDescription = formData.get("seoDescription") as string | null;
@@ -95,6 +102,7 @@ export async function createProject(formData: FormData) {
     revalidatePath("/projects");
     redirect(`/admin/projects/${project.id}`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     if (error instanceof Error && error.message.startsWith("Project name")) throw error;
     if (error instanceof Error && error.message.startsWith("Invalid slug")) throw error;
     if (error instanceof Error && error.message.startsWith("Year must")) throw error;
@@ -117,16 +125,16 @@ export async function updateProject(id: string, formData: FormData) {
       throw new Error("Invalid slug. Use only lowercase letters, numbers, and hyphens.");
     }
 
-    const year = formData.get("year") ? parseInt(formData.get("year") as string) : null;
+    const year = parseYear(formData.get("year"));
     if (!validateYear(year)) {
       throw new Error("Year must be between 2000 and 2100");
     }
     const oneLine = formData.get("oneLine") as string | null;
     const category = formData.get("category") as string | null;
     const status = (formData.get("status") as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT";
-    const featured = formData.get("featured") === "on";
-    const showOnHomepage = formData.get("showOnHomepage") === "on";
-    const displayOrder = formData.get("displayOrder") ? parseInt(formData.get("displayOrder") as string) : 0;
+    const featured = isChecked(formData.get("featured"));
+    const showOnHomepage = isChecked(formData.get("showOnHomepage"));
+    const displayOrder = parseOrder(formData.get("displayOrder"));
 
     const description = formData.get("description") as string | null;
     const problem = formData.get("problem") as string | null;
@@ -136,10 +144,7 @@ export async function updateProject(id: string, formData: FormData) {
     const result = formData.get("result") as string | null;
     const learned = formData.get("learned") as string | null;
 
-    const technologiesRaw = formData.get("technologies") as string | null;
-    const technologies = technologiesRaw
-      ? technologiesRaw.split(",").map((t) => t.trim()).filter(Boolean)
-      : [];
+    const technologies = parseTechnologies(formData.get("technologies"));
 
     const seoTitle = formData.get("seoTitle") as string | null;
     const seoDescription = formData.get("seoDescription") as string | null;
@@ -174,6 +179,7 @@ export async function updateProject(id: string, formData: FormData) {
     revalidatePath("/projects");
     redirect(`/admin/projects/${id}`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     if (error instanceof Error && error.message.startsWith("Project name")) throw error;
     if (error instanceof Error && error.message.startsWith("Invalid slug")) throw error;
     if (error instanceof Error && error.message.startsWith("Year must")) throw error;
@@ -191,6 +197,7 @@ export async function deleteProject(id: string) {
     revalidatePath("/projects");
     redirect("/admin/projects");
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     console.error("Failed to delete project:", error);
     throw new Error("Failed to delete project. Please try again.");
   }
@@ -276,7 +283,7 @@ export async function duplicateProject(id: string) {
         seoTitle: original.seoTitle,
         seoDescription: original.seoDescription,
         sections: {
-          create: original.sections.map((s: any) => ({
+          create: original.sections.map((s) => ({
             sectionType: s.sectionType,
             title: s.title,
             content: s.content,
@@ -285,16 +292,16 @@ export async function duplicateProject(id: string) {
           })),
         },
         projectSkills: {
-          create: original.projectSkills.map((ps: any) => ({ skillId: ps.skillId })),
+          create: original.projectSkills.map((ps) => ({ skillId: ps.skillId })),
         },
         researchProjects: {
-          create: original.researchProjects.map((rp: any) => ({ researchId: rp.researchId })),
+          create: original.researchProjects.map((rp) => ({ researchId: rp.researchId })),
         },
         achievementProjects: {
-          create: original.achievementProjects.map((ap: any) => ({ achievementId: ap.achievementId })),
+          create: original.achievementProjects.map((ap) => ({ achievementId: ap.achievementId })),
         },
         relatedProjects: {
-          create: original.relatedProjects.map((rp: any) => ({ relatedProjectId: rp.relatedProjectId })),
+          create: original.relatedProjects.map((rp) => ({ relatedProjectId: rp.relatedProjectId })),
         },
       },
     });
@@ -303,6 +310,7 @@ export async function duplicateProject(id: string) {
     revalidatePath("/projects");
     redirect(`/admin/projects/${duplicate.id}`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     console.error("Failed to duplicate project:", error);
     throw new Error("Failed to duplicate project. Please try again.");
   }

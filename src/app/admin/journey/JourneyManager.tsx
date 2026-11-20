@@ -22,21 +22,40 @@ const typeColors: Record<string, string> = {
 export default function JourneyManager({ entries }: { entries: JourneyEntryData[] }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const entryToEdit = editing ? entries.find((e) => e.id === editing) : undefined;
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
-    if (editing) {
-      updateJourneyEntry(editing, formData).then(() => {
-        setShowForm(false);
-        setEditing(null);
-      });
-    } else {
-      createJourneyEntry(formData).then(() => {
-        setShowForm(false);
-        form.reset();
-      });
+    setLoading(true);
+    setError("");
+    try {
+      if (editing) {
+        await updateJourneyEntry(editing, formData);
+      } else {
+        await createJourneyEntry(formData);
+      }
+      setShowForm(false);
+      setEditing(null);
+      form.reset();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save journey entry.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this journey entry?")) return;
+    setError("");
+    try {
+      await deleteJourneyEntry(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete journey entry.");
     }
   }
 
@@ -51,7 +70,7 @@ export default function JourneyManager({ entries }: { entries: JourneyEntryData[
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold" style={{ color: "#e8e8ec" }}>Journey</h1>
         <button
-          onClick={() => { setShowForm(true); setEditing(null); }}
+          onClick={() => { setShowForm(true); setEditing(null); setError(""); }}
           className="px-4 py-2 rounded-lg text-sm font-medium"
           style={{ background: "#00c8e0", color: "#0a0a0f" }}
         >
@@ -59,28 +78,34 @@ export default function JourneyManager({ entries }: { entries: JourneyEntryData[
         </button>
       </div>
 
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg text-sm" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+          {error}
+        </div>
+      )}
+
       {showForm && (
         <form onSubmit={handleSubmit} className="rounded-xl p-5 space-y-4 mb-6" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
           <h3 className="text-sm font-medium" style={{ color: "#e8e8ec" }}>
             {editing ? "Edit Entry" : "New Entry"}
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <input name="year" type="number" placeholder="Year" required className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
-            <select name="type" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
+            <input name="year" type="number" placeholder="Year" required defaultValue={entryToEdit?.year ?? ""} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
+            <select name="type" defaultValue={entryToEdit?.type ?? "MILESTONE"} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle}>
               <option value="MILESTONE">Milestone</option>
               <option value="PROJECT">Project</option>
               <option value="ONGOING">Ongoing</option>
             </select>
           </div>
-          <input name="title" placeholder="Title" required className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
-          <textarea name="description" placeholder="Description" rows={3} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-y" style={inputStyle} />
-          <input name="displayOrder" type="number" placeholder="Display Order (0)" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
+          <input name="title" placeholder="Title" required defaultValue={entryToEdit?.title ?? ""} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
+          <textarea name="description" placeholder="Description" rows={3} defaultValue={entryToEdit?.description ?? ""} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-y" style={inputStyle} />
+          <input name="displayOrder" type="number" placeholder="Display Order (0)" defaultValue={entryToEdit?.displayOrder ?? 0} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} />
           <label className="flex items-center gap-2 text-sm" style={{ color: "#8888a0" }}>
-            <input type="checkbox" name="visible" defaultChecked className="rounded" />
+            <input type="checkbox" name="visible" defaultChecked={entryToEdit ? entryToEdit.visible : true} className="rounded" />
             Visible on public site
           </label>
           <div className="flex gap-2">
-            <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium" style={{ background: "#00c8e0", color: "#0a0a0f" }}>Save</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50" style={{ background: "#00c8e0", color: "#0a0a0f" }}>Save</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(255,255,255,0.05)", color: "#8888a0" }}>Cancel</button>
           </div>
         </form>
@@ -104,9 +129,7 @@ export default function JourneyManager({ entries }: { entries: JourneyEntryData[
             </div>
             <div className="flex gap-2 shrink-0">
               <button onClick={() => { setEditing(entry.id); setShowForm(true); }} className="text-xs" style={{ color: "#8888a0" }}>Edit</button>
-              <form action={deleteJourneyEntry.bind(null, entry.id)}>
-                <button className="text-xs" style={{ color: "#ef4444" }} onClick={(e) => { if (!confirm("Delete this entry?")) e.preventDefault(); }}>Delete</button>
-              </form>
+              <button onClick={() => handleDelete(entry.id)} className="text-xs" style={{ color: "#ef4444" }}>Delete</button>
             </div>
           </div>
         ))}

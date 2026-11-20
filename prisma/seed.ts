@@ -11,20 +11,23 @@ function hashPassword(password: string): string {
   return `${salt}:${hash}`
 }
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme123'
+
 async function main() {
   console.log('Seeding database...')
 
   // Admin
   const admin = await prisma.admin.upsert({
-    where: { email: 'adityajadhav0167@gmail.com' },
+    where: { email: ADMIN_EMAIL },
     update: {},
     create: {
-      email: 'adityajadhav0167@gmail.com',
+      email: ADMIN_EMAIL,
       name: 'Aditya Jadhav',
-      passwordHash: hashPassword('admin123'),
+      passwordHash: hashPassword(ADMIN_PASSWORD),
     },
   })
-  console.log('Admin created:', admin.email)
+  console.log('Admin ensured:', admin.email)
 
   // Site Settings
   const settings = [
@@ -32,7 +35,7 @@ async function main() {
     { key: 'displayName', value: 'Aditya' },
     { key: 'headline', value: 'Engineer \u00b7 Builder \u00b7 Explorer' },
     { key: 'bio', value: 'I build things to understand how they work. From electronics experiments to complete hardware-software systems, my work is driven by curiosity. I don\'t want to simply use technology \u2014 I want to understand it, experiment with it, build it, and improve it.' },
-    { key: 'email', value: 'adityajadhav0167@gmail.com' },
+    { key: 'email', value: process.env.ADMIN_EMAIL || 'admin@example.com' },
     { key: 'linkedin', value: 'https://www.linkedin.com/in/aditya-jadhav-640a03371' },
     { key: 'github', value: 'https://github.com/AdityaJadhav9881' },
     { key: 'siteTitle', value: 'Aditya Jadhav \u2014 Engineer, Builder, Explorer' },
@@ -253,50 +256,71 @@ async function main() {
 
   for (const j of journeyData) {
     const { projectSlugs, ...data } = j
-    const entry = await prisma.journeyEntry.create({ data })
+    const existing = await prisma.journeyEntry.findFirst({ where: { year: data.year, title: data.title } })
+    const entry = existing
+      ? await prisma.journeyEntry.update({ where: { id: existing.id }, data })
+      : await prisma.journeyEntry.create({ data })
     for (const slug of projectSlugs) {
       if (projectIds[slug]) {
-        await prisma.journeyProject.create({ data: { journeyId: entry.id, projectId: projectIds[slug] } })
+        const existingLink = await prisma.journeyProject.findFirst({
+          where: { journeyId: entry.id, projectId: projectIds[slug] },
+        })
+        if (!existingLink) {
+          await prisma.journeyProject.create({ data: { journeyId: entry.id, projectId: projectIds[slug] } })
+        }
       }
     }
   }
-  console.log('Journey created')
+  console.log('Journey ensured')
 
   // Research
-  const researchEntry = await prisma.researchEntry.create({
-    data: {
+  const researchEntry = await prisma.researchEntry.upsert({
+    where: { slug: 'ipg-iot-energy' },
+    update: {},
+    create: {
       title: 'An IoT-Based Portable Energy Management System',
       slug: 'ipg-iot-energy',
       description: 'Research and development of an IoT-enabled portable energy system integrating embedded sensing, real-time telemetry, and web-based monitoring.',
       displayOrder: 1,
     },
   })
-  await prisma.researchProject.create({
-    data: { researchId: researchEntry.id, projectId: projectIds['infinity-power-guard'] },
+  const existingResearchLink = await prisma.researchProject.findFirst({
+    where: { researchId: researchEntry.id, projectId: projectIds['infinity-power-guard'] },
   })
-  console.log('Research created')
+  if (!existingResearchLink) {
+    await prisma.researchProject.create({
+      data: { researchId: researchEntry.id, projectId: projectIds['infinity-power-guard'] },
+    })
+  }
+  console.log('Research ensured')
 
   // Achievements
-  await prisma.achievement.create({
-    data: {
+  const achievementData = [
+    {
       title: 'Research Publication \u2014 Infinity Power Guard',
       description: 'Published research on IoT-based portable energy management systems.',
       year: 2026,
       category: 'Research',
       displayOrder: 1,
     },
-  })
-
-  await prisma.achievement.create({
-    data: {
+    {
       title: 'Ideathon / Next Gen Competition',
       description: 'Participated in ideathon and next generation technology competition.',
       year: 2024,
       category: 'Competition',
       displayOrder: 2,
     },
-  })
-  console.log('Achievements created')
+  ]
+
+  for (const a of achievementData) {
+    const existing = await prisma.achievement.findFirst({ where: { title: a.title } })
+    if (existing) {
+      await prisma.achievement.update({ where: { id: existing.id }, data: a })
+    } else {
+      await prisma.achievement.create({ data: a })
+    }
+  }
+  console.log('Achievements ensured')
 
   console.log('Seed complete!')
 }

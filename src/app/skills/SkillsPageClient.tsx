@@ -60,6 +60,7 @@ export default function SkillsPageClient({ skillGroups }: SkillsPageClientProps)
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {skillGroups.map((group) => (
               <FadeInItem key={group.id}>
+                <div id={group.id} className="scroll-mt-24">
                 <button
                   onClick={() => {
                     setActiveGroup(activeGroup === group.id ? null : group.id);
@@ -90,6 +91,7 @@ export default function SkillsPageClient({ skillGroups }: SkillsPageClientProps)
                     ))}
                   </div>
                 </button>
+                </div>
               </FadeInItem>
             ))}
           </div>

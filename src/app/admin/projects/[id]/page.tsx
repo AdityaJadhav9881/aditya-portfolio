@@ -7,6 +7,7 @@ import { updateProject, deleteProject } from "../../actions/project";
 import SectionManager from "../../components/SectionManager";
 import RelationshipManager from "../../components/RelationshipManager";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
+import { mediaSrc } from "@/lib/media";
 
 type Tab = "basic" | "story" | "technical" | "sections" | "media" | "relationships" | "settings" | "seo";
 
@@ -119,6 +120,7 @@ export default function EditProjectPage() {
   const [dropdownData, setDropdownData] = useState<DropdownData | null>(null);
   const [fetching, setFetching] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  const [error, setError] = useState("");
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -150,23 +152,57 @@ export default function EditProjectPage() {
   }, [activeTab, dropdownData]);
 
   async function handleSubmit(status?: string) {
+    if (!project) return;
     setLoading(true);
+    setError("");
+    const merged: Record<string, string> = {
+      name: project.name,
+      slug: project.slug,
+      oneLine: project.oneLine ?? "",
+      year: project.year?.toString() ?? "",
+      category: project.category ?? "",
+      description: project.description ?? "",
+      problem: project.problem ?? "",
+      designed: project.designed ?? "",
+      howItWorks: project.howItWorks ?? "",
+      engineering: project.engineering ?? "",
+      result: project.result ?? "",
+      learned: project.learned ?? "",
+      technologies: project.technologies.join(", "),
+      status: project.status,
+      displayOrder: project.displayOrder.toString(),
+      featured: project.featured.toString(),
+      showOnHomepage: project.showOnHomepage.toString(),
+      seoTitle: project.seoTitle ?? "",
+      seoDescription: project.seoDescription ?? "",
+      ...formValues,
+    };
+    if (status) merged.status = status;
     const formData = new FormData();
-    for (const [key, val] of Object.entries(formValues)) {
+    for (const [key, val] of Object.entries(merged)) {
       formData.set(key, val);
     }
-    if (status) formData.set("status", status);
     try {
       await updateProject(id, formData);
       setHasChanges(false);
       router.push("/admin/projects");
-    } catch { setLoading(false); }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save project.");
+      setLoading(false);
+    }
   }
 
   async function handleDelete() {
     if (!confirm("Are you sure you want to delete this project? This cannot be undone.")) return;
     setLoading(true);
-    try { await deleteProject(id); router.push("/admin/projects"); } catch { setLoading(false); }
+    setError("");
+    try {
+      await deleteProject(id);
+      router.push("/admin/projects");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete project.");
+      setLoading(false);
+    }
   }
 
   if (fetching) return <div className="flex items-center justify-center py-20"><div className="text-sm" style={{ color: "#8888a0" }}>Loading project...</div></div>;
@@ -191,6 +227,12 @@ export default function EditProjectPage() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg text-sm" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-1 mb-6 overflow-x-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         {tabs.map((tab) => (
@@ -248,7 +290,11 @@ export default function EditProjectPage() {
                 {project.media.map((m) => (
                   <div key={m.id} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "#0c0c14" }}>
                     {m.mimeType.startsWith("image/") ? (
-                      <img src={m.url} alt={m.alt || ""} className="w-12 h-12 rounded object-cover" />
+                      <img src={mediaSrc(m.url)} alt={m.alt || ""} className="w-12 h-12 rounded object-cover" />
+                    ) : m.mimeType === "application/pdf" ? (
+                      <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: "#111119" }}>
+                        <span className="text-[10px]" style={{ color: "#ef4444" }}>PDF</span>
+                      </div>
                     ) : (
                       <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: "#111119" }}>
                         <span className="text-[10px]" style={{ color: "#55556a" }}>FILE</span>

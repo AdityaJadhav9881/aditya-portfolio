@@ -66,8 +66,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Default seed credentials
 
-- **Email:** adityajadhav0167@gmail.com
-- **Password:** admin123
+- **Email:** set via `ADMIN_EMAIL` env var or the `/admin/setup` page
+- **Password:** set via `ADMIN_PASSWORD` env var or the `/admin/setup` page (min 8 chars)
 
 ## Database
 

@@ -71,6 +71,7 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("basic");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -84,6 +85,7 @@ export default function NewProjectPage() {
 
   async function handleSubmit(status: "DRAFT" | "PUBLISHED") {
     setLoading(true);
+    setError("");
     const formData = new FormData();
     for (const [key, val] of Object.entries(formValues)) {
       formData.set(key, val);
@@ -94,7 +96,8 @@ export default function NewProjectPage() {
       await createProject(formData);
       setHasChanges(false);
       router.push("/admin/projects");
-    } catch {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create project.");
       setLoading(false);
     }
   }
@@ -112,6 +115,12 @@ export default function NewProjectPage() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg text-sm" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-1 mb-6 overflow-x-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         {tabs.map((tab) => (

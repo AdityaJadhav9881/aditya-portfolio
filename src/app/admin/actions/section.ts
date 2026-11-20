@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { isChecked, parseOrder } from "@/lib/forms";
+import type { SectionType } from "@prisma/client";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -17,10 +19,10 @@ export async function createSection(projectId: string, formData: FormData) {
     const sectionType = formData.get("sectionType") as string;
     const title = formData.get("title") as string | null;
     const content = formData.get("content") as string | null;
-    const displayOrder = formData.get("displayOrder") ? parseInt(formData.get("displayOrder") as string) : 0;
+    const displayOrder = parseOrder(formData.get("displayOrder"));
 
     await prisma.projectSection.create({
-      data: { projectId, sectionType: sectionType as any, title, content, displayOrder },
+      data: { projectId, sectionType: sectionType as SectionType, title, content, displayOrder, visible: true },
     });
     revalidatePath(`/admin/projects/${projectId}`);
   } catch (error) {
@@ -35,8 +37,8 @@ export async function updateSection(sectionId: string, projectId: string, formDa
   try {
     const title = formData.get("title") as string | null;
     const content = formData.get("content") as string | null;
-    const displayOrder = formData.get("displayOrder") ? parseInt(formData.get("displayOrder") as string) : 0;
-    const visible = formData.get("visible") !== "off";
+    const displayOrder = parseOrder(formData.get("displayOrder"));
+    const visible = isChecked(formData.get("visible"));
 
     await prisma.projectSection.update({
       where: { id: sectionId },

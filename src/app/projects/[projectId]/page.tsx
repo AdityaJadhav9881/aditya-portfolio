@@ -182,23 +182,68 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 Gallery
               </h2>
               <div className="space-y-6">
-                {project.media.map((item: any) => (
-                  <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
-                    <img
-                      src={`/api/images?url=${encodeURIComponent(item.url)}`}
-                      alt={item.alt || item.originalName}
-                      width="800"
-                      height="600"
-                      style={{ width: "100%", height: "auto" }}
-                    />
-                    {(item.alt || item.caption) && (
-                      <div className="p-3" style={{ background: "#111119" }}>
-                        {item.alt && <p className="text-xs" style={{ color: "#8888a0" }}>{item.alt}</p>}
-                        {item.caption && <p className="text-xs mt-1" style={{ color: "#55556a" }}>{item.caption}</p>}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {project.media.map((item: any) => {
+                  const proxied = `/api/images?url=${encodeURIComponent(item.url)}`;
+                  const downloadUrl = `${proxied}&download=1`;
+                  const isPdf = item.mimeType === "application/pdf";
+                  const isVideo = item.mimeType.startsWith("video/");
+                  return (
+                    <div key={item.id} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
+                      {item.mimeType.startsWith("image/") ? (
+                        <img
+                          src={proxied}
+                          alt={item.alt || item.originalName}
+                          width="800"
+                          height="600"
+                          style={{ width: "100%", height: "auto" }}
+                        />
+                      ) : isVideo ? (
+                        <video controls preload="metadata" style={{ width: "100%", maxHeight: "600px" }}>
+                          <source src={proxied} type={item.mimeType} />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : isPdf ? (
+                        <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4" style={{ background: "#111119" }}>
+                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" className="shrink-0">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                          </svg>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-[var(--color-text-primary)] truncate">{item.originalName}</p>
+                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">PDF document</p>
+                          </div>
+                          <a
+                            href={downloadUrl}
+                            className="px-4 py-2 rounded-lg text-xs font-medium tracking-wide uppercase shrink-0"
+                            style={{ background: "#00c8e0", color: "#0a0a0f" }}
+                          >
+                            Download PDF
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="p-6 flex items-center gap-4" style={{ background: "#111119" }}>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-[var(--color-text-primary)] truncate">{item.originalName}</p>
+                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{item.mimeType}</p>
+                          </div>
+                          <a
+                            href={downloadUrl}
+                            className="px-4 py-2 rounded-lg text-xs font-medium tracking-wide uppercase shrink-0 border border-[var(--color-border)]"
+                            style={{ color: "#8888a0" }}
+                          >
+                            Download
+                          </a>
+                        </div>
+                      )}
+                      {(item.alt || item.caption) && (
+                        <div className="p-3" style={{ background: "#111119" }}>
+                          {item.alt && <p className="text-xs" style={{ color: "#8888a0" }}>{item.alt}</p>}
+                          {item.caption && <p className="text-xs mt-1" style={{ color: "#55556a" }}>{item.caption}</p>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </FadeIn>

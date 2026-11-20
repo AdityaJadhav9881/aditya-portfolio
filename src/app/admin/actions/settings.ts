@@ -11,6 +11,7 @@ async function requireAdmin() {
 }
 
 export async function getSiteSettings() {
+  await requireAdmin();
   try {
     const settings = await prisma.siteSetting.findMany();
     return settings.reduce<Record<string, unknown>>(

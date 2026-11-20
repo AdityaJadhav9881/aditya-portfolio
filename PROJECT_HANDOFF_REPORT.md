@@ -11,7 +11,7 @@
 **Repo:** `https://github.com/AdityaJadhav9881/aditya-portfolio` branch `master`
 **Live:** `https://aditya-portfolio-nine-xi.vercel.app`
 **Admin:** `https://aditya-portfolio-nine-xi.vercel.app/admin`
-**Credentials:** `adityajadhav0167@gmail.com` / `admin123`
+**Credentials:** See `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`, or use `/admin/setup` to create the first admin.
 
 > **IMPORTANT:** There are two Vercel projects. The correct one is `aditya-portfolio` (NOT `portfolio`).
 > Deploy with: `vercel link --project aditya-portfolio` then `vercel --yes --prod`

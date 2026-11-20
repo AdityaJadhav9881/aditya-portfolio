@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { deleteFromR2 } from "@/lib/r2";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import type { MediaRole } from "@prisma/client";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -14,10 +15,10 @@ export async function updateMedia(id: string, data: { alt?: string; caption?: st
   await requireAdmin();
 
   try {
-    const updateData: Record<string, unknown> = {};
+    const updateData: { alt?: string; caption?: string; role?: MediaRole; projectId?: string | null } = {};
     if (data.alt !== undefined) updateData.alt = data.alt;
     if (data.caption !== undefined) updateData.caption = data.caption;
-    if (data.role !== undefined) updateData.role = data.role as any;
+    if (data.role !== undefined) updateData.role = data.role as MediaRole;
     if (data.projectId !== undefined) updateData.projectId = data.projectId || null;
     await prisma.media.update({ where: { id }, data: updateData });
   } catch (error) {

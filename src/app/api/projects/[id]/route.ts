@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/auth";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -21,6 +22,13 @@ export async function GET(
 
     if (!project) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (project.status !== "PUBLISHED") {
+      const session = await getSession();
+      if (!session) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
     }
 
     return NextResponse.json({

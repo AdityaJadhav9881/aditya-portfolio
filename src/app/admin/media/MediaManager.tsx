@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { updateMedia, deleteMedia } from "../actions/media";
+import { mediaSrc } from "@/lib/media";
 
 interface MediaItem {
   id: string;
@@ -33,6 +34,7 @@ const MIME_FILTERS = [
 
 export default function MediaManager({ media, projects }: { media: MediaItem[]; projects: Project[] }) {
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [mimeFilter, setMimeFilter] = useState("");
@@ -52,18 +54,26 @@ export default function MediaManager({ media, projects }: { media: MediaItem[]; 
   }, [media, search, roleFilter, mimeFilter]);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      await fetch("/api/upload", { method: "POST", body: formData });
+    setError("");
+    let failed = 0;
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!res.ok) failed++;
+      } catch {
+        failed++;
+      }
+    }
+    setUploading(false);
+    if (failed > 0) {
+      setError(`${failed} file(s) failed to upload.`);
+    } else {
       window.location.reload();
-    } catch (err) {
-      console.error("Upload failed:", err);
-    } finally {
-      setUploading(false);
     }
   }
 
@@ -106,10 +116,16 @@ export default function MediaManager({ media, projects }: { media: MediaItem[]; 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold" style={{ color: "#e8e8ec" }}>Media</h1>
         <label className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer" style={{ background: "#00c8e0", color: "#0a0a0f" }}>
-          {uploading ? "Uploading..." : "+ Upload File"}
-          <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} accept="image/*,video/*,application/pdf" />
+          {uploading ? "Uploading..." : "+ Upload Files"}
+          <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} multiple accept="image/*,video/*,application/pdf" />
         </label>
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg text-sm" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
@@ -145,14 +161,23 @@ export default function MediaManager({ media, projects }: { media: MediaItem[]; 
           <div key={item.id} className="rounded-xl overflow-hidden" style={{ background: "#111119", border: "1px solid rgba(255,255,255,0.06)" }}>
             {item.mimeType.startsWith("image/") ? (
               <div className="aspect-square bg-[#0c0c14] flex items-center justify-center overflow-hidden">
-                <img src={item.url} alt={item.alt || item.originalName} className="w-full h-full object-cover" />
+                <img src={mediaSrc(item.url)} alt={item.alt || item.originalName} className="w-full h-full object-cover" />
+              </div>
+            ) : item.mimeType === "application/pdf" ? (
+              <div className="aspect-square bg-[#0c0c14] flex flex-col items-center justify-center gap-2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                </svg>
+                <span className="text-[10px]" style={{ color: "#55556a" }}>PDF</span>
               </div>
             ) : (
-              <div className="aspect-square bg-[#0c0c14] flex items-center justify-center">
+              <div className="aspect-square bg-[#0c0c14] flex flex-col items-center justify-center gap-2">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#55556a" strokeWidth="1.5">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                   <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
                 </svg>
+                <span className="text-[10px]" style={{ color: "#55556a" }}>FILE</span>
               </div>
             )}
             <div className="p-3">
